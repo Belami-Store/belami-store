@@ -363,7 +363,7 @@ document.addEventListener('input', function(e) {
       <div class="card">
         <div class="card-header"><div class="card-title"><i class="fa-solid fa-truck"></i> إعدادات التوصيل</div></div>
         <div class="form-group">
-          <label>تكلفة التوصيل (<img src="assets/sar.png" class="currency-icon" alt="SAR">)</label>
+          <label>تكلفة التوصيل (<img src='assets/sar.png' class='currency-icon' alt='SAR'>)</label>
           <input type="number" id="shipping-cost" value="35" min="0">
         </div>
         <div class="toggle-row">
@@ -417,7 +417,7 @@ document.addEventListener('input', function(e) {
     <input type="hidden" id="edit-id">
     <div class="form-group"><label>اسم المنتج</label><input type="text" id="edit-name" placeholder="اسم المنتج"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <div class="form-group"><label>السعر (<img src="assets/sar.png" class="currency-icon" alt="SAR">)</label><input type="number" id="edit-price" placeholder="250"></div>
+      <div class="form-group"><label>السعر (<img src='assets/sar.png' class='currency-icon' alt='SAR'>)</label><input type="number" id="edit-price" placeholder="250"></div>
       <div class="form-group"><label>السعر قبل الخصم</label><input type="number" id="edit-orig" placeholder="300"></div>
     </div>
     <div class="form-group"><label>مسار الصورة (assets/xxx.jpg)</label><input type="text" id="edit-img" placeholder="assets/product.jpg"></div>
@@ -629,7 +629,7 @@ function renderProducts(search=''){
         <div class="product-card-body">
           <div class="product-card-name">${p.name}</div>
           <div class="product-card-meta">
-            <div class="product-card-price">${p.price} <img src="assets/sar.png" class="currency-icon" alt="SAR"></div>
+            <div class="product-card-price">${p.price} <img src='assets/sar.png' class='currency-icon' alt='SAR'></div>
             <span style="background:#f0f4f8;color:#555;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700">${CAT[p.category]||p.category}</span>
           </div>
           ${p.isNew?'<span style="background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:700;margin-top:6px;display:inline-block">جديد ✨</span>':''}
@@ -661,7 +661,7 @@ function renderProducts(search=''){
                 <td><img src="${p.image}" style="width:45px;height:45px;border-radius:10px;object-fit:cover;border:1px solid #e8eef3;" onerror="this.style.background='#f0e6d3';this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'45\\' height=\\'45\\'><rect fill=\\'%23f0e6d3\\' width=\\'45\\' height=\\'45\\'/><text x=\\'50%25\\' y=\\'55%25\\' text-anchor=\\'middle\\' font-size=\\'16\\'>🍫</text></svg>'"></td>
                 <td style="font-weight:700;color:#1a1a2e;">${p.name}</td>
                 <td><span style="background:#f0f4f8;color:#555;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700">${CAT[p.category]||p.category}</span></td>
-                <td style="color:#c9a96e;font-weight:800;">${p.price} <img src="assets/sar.png" class="currency-icon" alt="SAR"></td>
+                <td style="color:#c9a96e;font-weight:800;">${p.price} <img src='assets/sar.png' class='currency-icon' alt='SAR'></td>
                 <td>
                   ${p.isNew?'<span style="background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:700;display:inline-block">جديد ✨</span>':''}
                   ${p.isSale?'<span style="background:#fff3e0;color:#e65100;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:700;display:inline-block;margin-right:4px">عرض 🔥</span>':''}
@@ -757,7 +757,7 @@ function renderCustomers(){
         <div style="font-weight:700;font-size:.92rem">${c.name||'—'}</div>
         <div style="color:#8fa8c0;font-size:.78rem">${c.phone||''} · ${c.city||''}</div>
       </div>
-      <div class="customer-spent">${(c.spent||0).toFixed(0)} <img src="assets/sar.png" class="currency-icon" alt="SAR"></div>
+      <div class="customer-spent">${(c.spent||0).toFixed(0)} <img src='assets/sar.png' class='currency-icon' alt='SAR'></div>
     </div>`).join(''):'<div class="empty-state"><i class="fa-solid fa-users"></i><p>لا يوجد عملاء بعد</p></div>';
 }
 
@@ -935,7 +935,7 @@ function showOrderNotif(order){
       <div style="flex:1">
         <div style="font-weight:900;font-size:1rem;color:#1a1a2e">طلب جديد وصل! 🎉</div>
         <div style="font-weight:700;font-size:.88rem;color:#555;margin-top:3px">${order?.name||'عميل جديد'}</div>
-        <div style="font-size:.82rem;color:#c9a96e;font-weight:800;margin-top:2px">${parseFloat(order?.total||0).toFixed(0)} <img src="assets/sar.png" class="currency-icon" alt="SAR"></div>
+        <div style="font-size:.82rem;color:#c9a96e;font-weight:800;margin-top:2px">${parseFloat(order?.total||0).toFixed(0)} <img src='assets/sar.png' class='currency-icon' alt='SAR'></div>
       </div>
       <button onclick="this.parentElement.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:#aaa;font-size:1.2rem;padding:4px">✕</button>
     </div>
@@ -1098,6 +1098,7 @@ initApp = async function(){
 </script>
 </body>
 </html>
+
 
 
 

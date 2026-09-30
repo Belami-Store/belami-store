@@ -77,10 +77,10 @@ const defaultProducts = [
         image: "assets/events_package.jpg",
         badge: "الأكثر مبيعاً",
         options: [
-            "باكج 20 شخص (1100 <img src="assets/sar.png" class="currency-icon" alt="SAR">)",
-            "باكج 50 شخص (2100 <img src="assets/sar.png" class="currency-icon" alt="SAR">)",
-            "باكج 100 شخص (5500 <img src="assets/sar.png" class="currency-icon" alt="SAR">)",
-            "باكج 200 شخص (10900 <img src="assets/sar.png" class="currency-icon" alt="SAR">)"
+            "باكج 20 شخص (1100 <img src='assets/sar.png' class='currency-icon' alt='SAR'>)",
+            "باكج 50 شخص (2100 <img src='assets/sar.png' class='currency-icon' alt='SAR'>)",
+            "باكج 100 شخص (5500 <img src='assets/sar.png' class='currency-icon' alt='SAR'>)",
+            "باكج 200 شخص (10900 <img src='assets/sar.png' class='currency-icon' alt='SAR'>)"
         ],
         isOutOfStock: false
     },
@@ -217,18 +217,18 @@ const defaultProducts = [
         image: "assets/chocolate_by_kilo.jpg",
         badge: "بالوزن",
         options: [
-            "ربع كيلو كلاسيك (85 <img src="assets/sar.png" class="currency-icon" alt="SAR">)",
-            "ربع كيلو ترافلز (85 <img src="assets/sar.png" class="currency-icon" alt="SAR">)",
-            "ربع كيلو كريمينو كلاسيك (85 <img src="assets/sar.png" class="currency-icon" alt="SAR">)",
-            "ربع كيلو بيكان مكرمل (85 <img src="assets/sar.png" class="currency-icon" alt="SAR">)",
-            "نصف كيلو كلاسيك (170 <img src="assets/sar.png" class="currency-icon" alt="SAR">)",
-            "نصف كيلو ترافلز (170 <img src="assets/sar.png" class="currency-icon" alt="SAR">)",
-            "نصف كيلو كريمينو كلاسيك (170 <img src="assets/sar.png" class="currency-icon" alt="SAR">)",
-            "نصف كيلو بيكان مكرمل (170 <img src="assets/sar.png" class="currency-icon" alt="SAR">)",
-            "كيلو كلاسيك (340 <img src="assets/sar.png" class="currency-icon" alt="SAR">)",
-            "كيلو ترافلز (340 <img src="assets/sar.png" class="currency-icon" alt="SAR">)",
-            "كيلو كريمينو كلاسيك (340 <img src="assets/sar.png" class="currency-icon" alt="SAR">)",
-            "كيلو بيكان مكرمل (340 <img src="assets/sar.png" class="currency-icon" alt="SAR">)"
+            "ربع كيلو كلاسيك (85 <img src='assets/sar.png' class='currency-icon' alt='SAR'>)",
+            "ربع كيلو ترافلز (85 <img src='assets/sar.png' class='currency-icon' alt='SAR'>)",
+            "ربع كيلو كريمينو كلاسيك (85 <img src='assets/sar.png' class='currency-icon' alt='SAR'>)",
+            "ربع كيلو بيكان مكرمل (85 <img src='assets/sar.png' class='currency-icon' alt='SAR'>)",
+            "نصف كيلو كلاسيك (170 <img src='assets/sar.png' class='currency-icon' alt='SAR'>)",
+            "نصف كيلو ترافلز (170 <img src='assets/sar.png' class='currency-icon' alt='SAR'>)",
+            "نصف كيلو كريمينو كلاسيك (170 <img src='assets/sar.png' class='currency-icon' alt='SAR'>)",
+            "نصف كيلو بيكان مكرمل (170 <img src='assets/sar.png' class='currency-icon' alt='SAR'>)",
+            "كيلو كلاسيك (340 <img src='assets/sar.png' class='currency-icon' alt='SAR'>)",
+            "كيلو ترافلز (340 <img src='assets/sar.png' class='currency-icon' alt='SAR'>)",
+            "كيلو كريمينو كلاسيك (340 <img src='assets/sar.png' class='currency-icon' alt='SAR'>)",
+            "كيلو بيكان مكرمل (340 <img src='assets/sar.png' class='currency-icon' alt='SAR'>)"
         ],
         isOutOfStock: false
     },
@@ -245,14 +245,14 @@ const defaultProducts = [
         ],
         badge: "بالطلب",
         options: [
-            "نصف كيلو كلاسيك خاص (170 <img src="assets/sar.png" class="currency-icon" alt="SAR">)",
-            "نصف كيلو كرانشي خاص (170 <img src="assets/sar.png" class="currency-icon" alt="SAR">)",
-            "نصف كيلو أعواد (170 <img src="assets/sar.png" class="currency-icon" alt="SAR">)",
-            "نصف كيلو شوكولاتة ملونة (170 <img src="assets/sar.png" class="currency-icon" alt="SAR">)",
-            "كيلو كلاسيك خاص (340 <img src="assets/sar.png" class="currency-icon" alt="SAR">)",
-            "كيلو كرانشي خاص (340 <img src="assets/sar.png" class="currency-icon" alt="SAR">)",
-            "كيلو أعواد (340 <img src="assets/sar.png" class="currency-icon" alt="SAR">)",
-            "كيلو شوكولاتة ملونة (340 <img src="assets/sar.png" class="currency-icon" alt="SAR">)"
+            "نصف كيلو كلاسيك خاص (170 <img src='assets/sar.png' class='currency-icon' alt='SAR'>)",
+            "نصف كيلو كرانشي خاص (170 <img src='assets/sar.png' class='currency-icon' alt='SAR'>)",
+            "نصف كيلو أعواد (170 <img src='assets/sar.png' class='currency-icon' alt='SAR'>)",
+            "نصف كيلو شوكولاتة ملونة (170 <img src='assets/sar.png' class='currency-icon' alt='SAR'>)",
+            "كيلو كلاسيك خاص (340 <img src='assets/sar.png' class='currency-icon' alt='SAR'>)",
+            "كيلو كرانشي خاص (340 <img src='assets/sar.png' class='currency-icon' alt='SAR'>)",
+            "كيلو أعواد (340 <img src='assets/sar.png' class='currency-icon' alt='SAR'>)",
+            "كيلو شوكولاتة ملونة (340 <img src='assets/sar.png' class='currency-icon' alt='SAR'>)"
         ],
         isOutOfStock: false
     },
@@ -265,15 +265,15 @@ const defaultProducts = [
         image: "assets/sugar_free_chocolate.jpg",
         badge: "صحي / دايت",
         options: [
-            "نصف كيلو خالية من السكر (220 <img src="assets/sar.png" class="currency-icon" alt="SAR">)",
-            "كيلو كامل خالية من السكر (440 <img src="assets/sar.png" class="currency-icon" alt="SAR">)"
+            "نصف كيلو خالية من السكر (220 <img src='assets/sar.png' class='currency-icon' alt='SAR'>)",
+            "كيلو كامل خالية من السكر (440 <img src='assets/sar.png' class='currency-icon' alt='SAR'>)"
         ],
         isOutOfStock: false
     },
     {
         id: 21,
         name: "شوكولاتة قهوتك اليوم",
-        description: "صينية شوكولاتة فاخرة بـ 99 <img src="assets/sar.png" class="currency-icon" alt="SAR"> مثالية لجمعاتكم وقهوتكم اليومية. تتوفر بثلاثة أصناف فاخرة حسب اختيارك: الشوكولاتة الملونة، الكلاسيك، أو الكريمينو.",
+        description: "صينية شوكولاتة فاخرة بـ 99 <img src='assets/sar.png' class='currency-icon' alt='SAR'> مثالية لجمعاتكم وقهوتكم اليومية. تتوفر بثلاثة أصناف فاخرة حسب اختيارك: الشوكولاتة الملونة، الكلاسيك، أو الكريمينو.",
         price: 99,
         category: "trays",
         image: "assets/daily_coffee_all.jpg",
@@ -387,13 +387,13 @@ function sendOrderEmailNotification(orderData) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
             body: JSON.stringify({
-                _subject: `🔔 طلب جديد في متجر بيلامي #${orderData.orderId} بقيمة ${orderData.total.toFixed(2)} <img src="assets/sar.png" class="currency-icon" alt="SAR">`,
+                _subject: `🔔 طلب جديد في متجر بيلامي #${orderData.orderId} بقيمة ${orderData.total.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`,
                 "رقم الطلب": `#${orderData.orderId}`,
                 "اسم العميل": orderData.name,
                 "رقم الجوال": orderData.phone,
                 "العنوان والمدينة": `${orderData.city}، ${orderData.address}`,
                 "طريقة الدفع": orderData.paymentMethod,
-                "إجمالي المبلغ": `${orderData.total.toFixed(2)} <img src="assets/sar.png" class="currency-icon" alt="SAR">`,
+                "إجمالي المبلغ": `${orderData.total.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`,
                 "تاريخ الطلب": orderData.date,
                 "المنتجات": orderData.items.map(i => `${i.name} (الكمية: ${i.quantity})`).join(', ')
             })
@@ -498,7 +498,7 @@ async function checkMoyasarCallback() {
                 await saveOrderToAdmin(orderId, name, phone, city, address, `مدفوع إلكترونياً (${gatewayName}: ${gatewayPaymentId})`, total, orderItems);
             
             // Log administrative alert
-            logAdminAlert(`🎉 طلب جديد رقم #${orderId} مدفوع إلكترونياً بقيمة ${total.toFixed(2)} <img src="assets/sar.png" class="currency-icon" alt="SAR">`);
+            logAdminAlert(`🎉 طلب جديد رقم #${orderId} مدفوع إلكترونياً بقيمة ${total.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`);
             localStorage.setItem('belami_new_order_trigger', Date.now().toString());
             playNotificationSound();
 
@@ -512,7 +512,7 @@ async function checkMoyasarCallback() {
             document.getElementById("receipt-phone").textContent = phone;
             document.getElementById("receipt-address").textContent = `${city}، ${address}`;
             document.getElementById("receipt-payment").textContent = `مدفوع إلكترونياً (ميسر: ${paymentId})`;
-            document.getElementById("receipt-total").innerHTML = `${total.toFixed(2)} <img src="assets/sar.png" class="currency-icon" alt="SAR">`;
+            document.getElementById("receipt-total").innerHTML = `${total.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`;
 
             // Build WhatsApp message
             const shippingMethodName = total > 1000 ? "توصيل مجاني للمناسبات" : (currentShippingCost === 35 ? "توصيل لجميع أحياء الرياض (35 ر.س)" : "استلام من الرياض - حي الشفا (مجاناً)");
@@ -714,7 +714,7 @@ function renderProducts() {
                 </h3>
                 <p class="product-desc">${p.description}</p>
                 <div class="product-footer">
-                    <span class="product-price">${p.price} <span><img src="assets/sar.png" class="currency-icon" alt="SAR"></span></span>
+                    <span class="product-price">${p.price} <span><img src='assets/sar.png' class='currency-icon' alt='SAR'></span></span>
                     ${buttonHtml}
                 </div>
             </div>
@@ -995,7 +995,7 @@ function renderCart() {
             </div>
         `;
         document.getElementById("cart-checkout-button").disabled = true;
-        document.getElementById("cart-total-value").innerHTML = "0.00 <img src="assets/sar.png" class="currency-icon" alt="SAR">";
+        document.getElementById("cart-total-value").innerHTML = `0.00 <img src='assets/sar.png' class='currency-icon' alt='SAR'>`;
         return;
     }
 
@@ -1026,7 +1026,7 @@ function renderCart() {
             <img src="${item.product.image}" alt="${item.product.name}" class="cart-item-img">
             <div class="cart-item-details">
                 <h4 class="cart-item-name">${item.product.name}</h4>
-                <span class="cart-item-price">${item.itemPrice} <img src="assets/sar.png" class="currency-icon" alt="SAR"></span>
+                <span class="cart-item-price">${item.itemPrice} <img src='assets/sar.png' class='currency-icon' alt='SAR'></span>
                 ${metaHtml}
                 <div class="cart-item-qty" style="margin-top: 6px;">
                     <button class="qty-btn" onclick="updateQuantity('${item.cartItemId}', -1)">-</button>
@@ -1042,7 +1042,7 @@ function renderCart() {
     });
 
     const subtotal = getSubtotal();
-    document.getElementById("cart-total-value").innerHTML = `${subtotal.toFixed(2)} <img src="assets/sar.png" class="currency-icon" alt="SAR">`;
+    document.getElementById("cart-total-value").innerHTML = `${subtotal.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`;
 }
 
 // Go to Checkout Screen
@@ -1095,7 +1095,7 @@ function renderCheckoutSummary() {
                     ${metaHtml}
                 </div>
             </div>
-            <span style="color: var(--text-gold); font-weight: 700; font-size: 0.95rem;">${(item.itemPrice * item.quantity).toFixed(2)} <img src="assets/sar.png" class="currency-icon" alt="SAR"></span>
+            <span style="color: var(--text-gold); font-weight: 700; font-size: 0.95rem;">${(item.itemPrice * item.quantity).toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'></span>
         `;
         container.appendChild(div);
     });
@@ -1105,21 +1105,21 @@ function renderCheckoutSummary() {
     const discount = subtotal * (activeDiscountPercent / 100);
     const total = getTotalPrice();
 
-    document.getElementById("checkout-subtotal").innerHTML = `${subtotal.toFixed(2)} <img src="assets/sar.png" class="currency-icon" alt="SAR">`;
-    document.getElementById("checkout-shipping").innerHTML = shipping === 0 ? "مجاناً" : `${shipping.toFixed(2)} <img src="assets/sar.png" class="currency-icon" alt="SAR">`;
+    document.getElementById("checkout-subtotal").innerHTML = `${subtotal.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`;
+    document.getElementById("checkout-shipping").innerHTML = shipping === 0 ? "مجاناً" : `${shipping.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`;
     
     const discountRow = document.getElementById("coupon-discount-row");
     const discountVal = document.getElementById("checkout-discount");
     if (discountRow && discountVal) {
         if (activeDiscountPercent > 0) {
             discountRow.style.display = "table-row";
-            discountVal.innerHTML = `-${discount.toFixed(2)} <img src="assets/sar.png" class="currency-icon" alt="SAR">`;
+            discountVal.innerHTML = `-${discount.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`;
         } else {
             discountRow.style.display = "none";
         }
     }
 
-    document.getElementById("checkout-total").innerHTML = `${total.toFixed(2)} <img src="assets/sar.png" class="currency-icon" alt="SAR">`;
+    document.getElementById("checkout-total").innerHTML = `${total.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`;
 }
 
 // Toast Notifications
@@ -1242,7 +1242,7 @@ async function handleCheckoutSubmit(event) {
         localStorage.setItem('belami_customers', JSON.stringify(customers));
         
         // Log notification/alert
-        logAdminAlert(`🛒 طلب جديد رقم #${orderId} عبر ${methodTitle} بقيمة ${total.toFixed(2)} <img src="assets/sar.png" class="currency-icon" alt="SAR">`);
+        logAdminAlert(`🛒 طلب جديد رقم #${orderId} عبر ${methodTitle} بقيمة ${total.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`);
         localStorage.setItem('belami_new_order_trigger', Date.now().toString());
 
         // Play loud sound chime and send email to belamichoco@gmail.com
@@ -1259,7 +1259,7 @@ async function handleCheckoutSubmit(event) {
         document.getElementById("receipt-phone").textContent = phone;
         document.getElementById("receipt-address").textContent = `${city}، ${address}`;
         document.getElementById("receipt-payment").textContent = methodTitle;
-        document.getElementById("receipt-total").innerHTML = `${total.toFixed(2)} <img src="assets/sar.png" class="currency-icon" alt="SAR">`;
+        document.getElementById("receipt-total").innerHTML = `${total.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`;
 
         // Build WhatsApp message
         const couponText = appliedCouponCode ? `\n*كود الخصم المطبق:* ${appliedCouponCode} (خصم 5%)` : "";
@@ -1303,7 +1303,7 @@ async function handleCheckoutSubmit(event) {
         };
         
         // Dispatch instant email alert to belamichoco@gmail.com & play sound chime
-        logAdminAlert(`💳 طلب دفع إلكتروني عبر Paylink رقم #${orderId} بقيمة ${total.toFixed(2)} <img src="assets/sar.png" class="currency-icon" alt="SAR">`);
+        logAdminAlert(`💳 طلب دفع إلكتروني عبر Paylink رقم #${orderId} بقيمة ${total.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`);
         sendOrderEmailNotification(newOrder);
         playNewOrderSound();
 
@@ -1595,7 +1595,7 @@ function updateModalPrice() {
     const printMsgSelect = document.getElementById("modal-print-message");
     const extra = (printMsgSelect && printMsgSelect.value !== "") ? 5 : 0;
     const totalPrice = basePrice + extra;
-    document.getElementById("modal-product-price").innerHTML = `${totalPrice} <span><img src="assets/sar.png" class="currency-icon" alt="SAR"></span>`;
+    document.getElementById("modal-product-price").innerHTML = `${totalPrice} <span><img src='assets/sar.png' class='currency-icon' alt='SAR'></span>`;
 }
 
 // Adjust quantity counter inside modal
@@ -1891,7 +1891,7 @@ function processApplePayCheckout() {
     document.getElementById("receipt-phone").textContent = phone;
     document.getElementById("receipt-address").textContent = `${city}، ${address}`;
     document.getElementById("receipt-payment").textContent = 'Apple Pay (محاكاة آمنة)';
-    document.getElementById("receipt-total").innerHTML = `${total.toFixed(2)} <img src="assets/sar.png" class="currency-icon" alt="SAR">`;
+    document.getElementById("receipt-total").innerHTML = `${total.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`;
 
     let orderItemsText = '';
     cart.forEach(item => {
@@ -1929,7 +1929,7 @@ function processApplePayCheckout() {
     saveOrderToAdmin(orderId, name, phone, city, address, 'Apple Pay', total, cart);
     
     // Log alert and set cross-tab trigger
-    logAdminAlert(`🎉 طلب جديد رقم #${orderId} (Apple Pay) من العميل [${name}] بقيمة ${total.toFixed(2)} <img src="assets/sar.png" class="currency-icon" alt="SAR">`);
+    logAdminAlert(`🎉 طلب جديد رقم #${orderId} (Apple Pay) من العميل [${name}] بقيمة ${total.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`);
     localStorage.setItem('belami_new_order_trigger', Date.now().toString());
 
     cart = [];
@@ -2050,7 +2050,7 @@ async function renderAdminDashboard() {
 
     if (visitsEl) visitsEl.textContent = visits;
     if (ordersEl) ordersEl.textContent = orders.length;
-    if (revenueEl) revenueEl.innerHTML = `${revenue.toFixed(2)} <img src="assets/sar.png" class="currency-icon" alt="SAR">`;
+    if (revenueEl) revenueEl.innerHTML = `${revenue.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`;
     if (conversionEl) conversionEl.textContent = `${conversion}%`;
 
     // Render Alerts Feed
@@ -2098,7 +2098,7 @@ async function renderAdminDashboard() {
                     <td style="padding: 10px 5px; font-weight: bold; color: var(--text-dark);">${cust.name}</td>
                     <td style="padding: 10px 5px; font-family: monospace;">${cust.phone}</td>
                     <td style="padding: 10px 5px; color: var(--text-muted);">${cust.city}، ${cust.address}</td>
-                    <td style="padding: 10px 5px; color: var(--text-gold); font-weight: bold;">${cust.spent.toFixed(2)} <img src="assets/sar.png" class="currency-icon" alt="SAR"></td>
+                    <td style="padding: 10px 5px; color: var(--text-gold); font-weight: bold;">${cust.spent.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'></td>
                     <td style="padding: 10px 5px; text-align: center;">
                         <a href="https://wa.me/966${cust.phone.substring(1)}" target="_blank" class="btn" style="padding: 4px 10px; font-size: 0.75rem; background: #25d366; border-color: #25d366; color: #fff; display: inline-flex; align-items: center; gap: 4px; border-radius: 4px;">
                             <i class="fa-brands fa-whatsapp"></i> راسل واتساب
@@ -2135,7 +2135,7 @@ async function renderAdminDashboard() {
                         <div>${order.paymentMethod}</div>
                         <div style="font-size: 0.7rem; color: var(--text-gold);">${order.address.startsWith("استلام") ? "استلام فرع" : "شحن توصيل"}</div>
                     </td>
-                    <td style="padding: 10px 5px; font-weight: bold; color: var(--text-dark);">${order.total.toFixed(2)} <img src="assets/sar.png" class="currency-icon" alt="SAR"></td>
+                    <td style="padding: 10px 5px; font-weight: bold; color: var(--text-dark);">${order.total.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'></td>
                     <td style="padding: 10px 5px; text-align: center;">
                         <span style="background: rgba(37,211,102,0.1); color: #25d366; padding: 3px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: bold;">مكتمل</span>
                     </td>
@@ -2236,7 +2236,7 @@ function renderAdminProductsTable() {
             <td style="padding: 8px 5px;"><img id="${imgId}" alt="${p.name}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 6px; border: 1px solid rgba(0,0,0,0.05);"></td>
             <td style="padding: 8px 5px; font-weight: bold; color: var(--text-dark);">${p.name}</td>
             <td style="padding: 8px 5px; color: var(--text-muted);">${getCategoryName(p.category)}</td>
-            <td style="padding: 8px 5px; font-weight: bold; color: var(--text-gold);">${p.price} <img src="assets/sar.png" class="currency-icon" alt="SAR"></td>
+            <td style="padding: 8px 5px; font-weight: bold; color: var(--text-gold);">${p.price} <img src='assets/sar.png' class='currency-icon' alt='SAR'></td>
             <td style="padding: 8px 5px;">
                 <span style="background: ${p.isOutOfStock ? 'rgba(255,51,51,0.1)' : 'rgba(37,211,102,0.1)'}; color: ${p.isOutOfStock ? '#ff3333' : '#25d366'}; padding: 3px 8px; border-radius: 20px; font-size: 0.72rem; font-weight: bold;">
                     ${p.isOutOfStock ? 'نفذت الكمية' : 'متوفر'}
@@ -3139,6 +3139,8 @@ document.addEventListener('input', function(e) {
         }
     }
 });
+
+
 
 
 
