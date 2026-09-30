@@ -175,11 +175,16 @@ document.addEventListener('input', function(e) {
 <div id="login-screen">
   <div class="login-box">
     <div class="logo">🍫</div>
-    <h2>بيلامي شوكليت</h2>
-    <p>لوحة تحكم التاجر - دخول خاص</p>
-    <input type="password" id="pw" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter')login()">
+    <h2>تسجيل الدخول</h2>
+    <p>متجر بيلامي شوكليت - لوحة التحكم</p>
+    <input type="text" id="username" placeholder="اسم المستخدم" style="margin-bottom:10px;">
+    <input type="password" id="pw" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter')login()" style="margin-bottom:10px;">
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px; font-size:0.85rem; color:#666; justify-content:center;">
+      <input type="checkbox" id="remember-user" style="width:auto; margin:0;">
+      <label for="remember-user" style="cursor:pointer;">حفظ اسم المستخدم</label>
+    </div>
     <button class="btn-login" onclick="login()"><i class="fa-solid fa-right-to-bracket"></i> دخول</button>
-    <div class="login-error" id="login-err">❌ كلمة المرور غير صحيحة</div>
+    <div class="login-error" id="login-err">❌ خطأ في بيانات الدخول</div>
   </div>
 </div>
 
@@ -305,6 +310,18 @@ document.addEventListener('input', function(e) {
   <div class="page-content" id="page-settings">
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px">
       <div class="card">
+        <div class="card-header"><div class="card-title"><i class="fa-solid fa-lock"></i> بيانات الدخول</div></div>
+        <div class="form-group">
+          <label>اسم المستخدم</label>
+          <input type="text" id="setting-user" value="admin">
+        </div>
+        <div class="form-group">
+          <label>كلمة المرور الجديدة</label>
+          <input type="text" id="setting-pass" placeholder="اتركه فارغاً إذا لم ترد التغيير">
+        </div>
+        <button class="btn btn-primary" onclick="saveCredentials()"><i class="fa-solid fa-floppy-disk"></i> تحديث بيانات الدخول</button>
+      </div>
+      <div class="card">
         <div class="card-header"><div class="card-title"><i class="fa-solid fa-bullhorn"></i> الشريط الترويجي العلوي</div></div>
         <div class="banner-preview-box" id="banner-preview">🔥 جاري التحميل...</div>
         <div class="form-group">
@@ -427,20 +444,53 @@ function extendSession() {
   updateSessionTimer();
   toast('✅ تم تمديد الجلسة بنجاح');
 }
-function login(){
-  if(document.getElementById('pw').value === PASS){
-    localStorage.setItem('admin_session_expiry', (Date.now() + 8 * 60 * 60 * 1000).toString());
-    document.getElementById('login-screen').style.display='none';
-    document.getElementById('sidebar').style.display='flex';
-    document.getElementById('main').style.display='flex';
-    document.getElementById('main').style.flexDirection='column';
-    initApp();
-    startSessionTimer();
-  } else {
-    const e=document.getElementById('login-err'); e.style.display='block';
-    document.getElementById('pw').value='';
-    setTimeout(()=>e.style.display='none',3000);
+async function login(){
+  const btn = document.querySelector('.btn-login');
+  const prevHtml = btn.innerHTML;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري التحقق...';
+  try {
+    let s = await dbGet('settings');
+    if(!s) s = {};
+    const validUser = s.adminUser || 'admin';
+    const validPass = s.adminPass || 'Belami@2026';
+    
+    const u = document.getElementById('username').value.trim();
+    const p = document.getElementById('pw').value;
+    
+    if(u === validUser && p === validPass){
+      if(document.getElementById('remember-user').checked) {
+        localStorage.setItem('saved_admin_user', u);
+      } else {
+        localStorage.removeItem('saved_admin_user');
+      }
+      localStorage.setItem('admin_session_expiry', (Date.now() + 8 * 60 * 60 * 1000).toString());
+      document.getElementById('login-screen').style.display='none';
+      document.getElementById('sidebar').style.display='flex';
+      document.getElementById('main').style.display='flex';
+      document.getElementById('main').style.flexDirection='column';
+      initApp();
+      startSessionTimer();
+    } else {
+      const e=document.getElementById('login-err'); e.style.display='block';
+      document.getElementById('pw').value='';
+      setTimeout(()=>e.style.display='none',3000);
+    }
+  } catch(e) {
+    console.error(e);
   }
+  btn.innerHTML = prevHtml;
+}
+async function saveCredentials(){
+  const u = document.getElementById('setting-user').value.trim();
+  const p = document.getElementById('setting-pass').value;
+  if(!u) return toast('اسم المستخدم مطلوب');
+  let s = await dbGet('settings');
+  if(!s) s = {};
+  s.adminUser = u;
+  if(p) s.adminPass = p;
+  await dbSet('settings', s);
+  toast('✅ تم تحديث بيانات الدخول بنجاح');
+  document.getElementById('setting-pass').value = '';
 }
 function logout(){ localStorage.removeItem('admin_session_expiry'); location.reload(); }
 document.getElementById('pw').addEventListener('keydown',e=>e.key==='Enter'&&login());
@@ -727,6 +777,7 @@ async function loadSettings(){
   const s=await dbGet('settings');
   if(s){
     document.getElementById('shipping-cost').value=s.shippingCost||35;
+    document.getElementById('setting-user').value=s.adminUser||'admin';
     document.getElementById('pickup-enabled').checked=s.pickupEnabled!==false;
     document.getElementById('coupon10-enabled').checked=s.coupon10Enabled!==false;
   }
@@ -755,7 +806,12 @@ document.getElementById('modal-overlay').addEventListener('click',function(e){ i
 
 // ── AUTO LOGIN ──
 window.addEventListener('DOMContentLoaded',()=>{
-  const expiry = parseInt(localStorage.getItem('admin_session_expiry') || '0');
+  const savedUser = localStorage.getItem('saved_admin_user');
+  if(savedUser) {
+    document.getElementById('username').value = savedUser;
+    document.getElementById('remember-user').checked = true;
+  }
+  const expiry = parseInt(localStorage.getItem('admin_session_expiry')) || '0');
   if(expiry > Date.now()){
     document.getElementById('login-screen').style.display='none';
     document.getElementById('sidebar').style.display='flex';
@@ -908,6 +964,12 @@ initApp = async function(){
 </script>
 </body>
 </html>
+
+
+
+
+
+
 
 
 
