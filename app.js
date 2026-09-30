@@ -596,6 +596,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     trackVisitor();
     // Load immediately from local cache (offline-first, instant render)
     storeSettings = dbFetchLocal('settings', storeSettings);
+    if (!storeSettings || !Array.isArray(storeSettings.categories) || storeSettings.categories.length === 0) {
+        if (!storeSettings) storeSettings = {};
+        storeSettings.categories = [
+            { id: "boxes", name: "بوكسات" },
+            { id: "trays", name: "صواني" },
+            { id: "gifts", name: "هدايا" },
+            { id: "hospitality", name: "بكجات ضيافة" },
+            { id: "corporate", name: "هدايا الشركات" }
+        ];
+    }
     products = dbFetchLocal('products', defaultProducts);
     reviewsList = dbFetchLocal('store_reviews', reviewsList);
     
@@ -2055,8 +2065,18 @@ function playNotificationSound() {
 }
 
 function getCategoryName(catId) {
-    const cat = storeSettings.categories.find(c => c.id === catId);
-    return cat ? cat.name : catId;
+    const catMap = {
+        'boxes': 'صناديق',
+        'trays': 'صواني',
+        'gifts': 'هدايا',
+        'hospitality': 'بكجات ضيافة',
+        'corporate': 'هدايا الشركات'
+    };
+    if (storeSettings && Array.isArray(storeSettings.categories)) {
+        const found = storeSettings.categories.find(c => c && c.id === catId);
+        if (found && found.name) return found.name;
+    }
+    return catMap[catId] || catId || '';
 }
 
 // Render Admin Merchant Dashboard figures and feeds
