@@ -150,6 +150,8 @@ input:checked+.slider:before{transform:translateX(22px)}
 .filter-chip{padding:7px 16px;border-radius:20px;font-size:.8rem;font-weight:700;cursor:pointer;border:2px solid transparent;transition:.2s;background:#f0f4f8;color:#555}
 .filter-chip.active{background:#1a7fbd;color:#fff;border-color:#1a7fbd}
 .filter-chip:hover{border-color:#1a7fbd}
+.sidebar::-webkit-scrollbar { display: none; }
+.sidebar { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
 <script>
 // Convert Arabic numerals to English numerals automatically
@@ -307,7 +309,7 @@ document.addEventListener('input', function(e) {
   <!-- SETTINGS PAGE -->
   <div class="page-content" id="page-settings">
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px">
-            <div class="card">
+            <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-lock"></i> بيانات الدخول للحساب الحالي</div></div><div class="form-group"><label>اسم المستخدم</label><input type="text" id="setting-user" class="form-control" placeholder="admin"></div><div class="form-group"><label>كلمة المرور الجديدة (اختياري)</label><input type="password" id="setting-pass" class="form-control" placeholder="اتركه فارغاً لعدم التغيير"></div><button class="btn btn-outline" style="width:100%" onclick="saveCredentials()"><i class="fa-solid fa-save"></i> حفظ بيانات الدخول</button></div><div class="card">
         <div class="card-header"><div class="card-title"><i class="fa-solid fa-users-gear"></i> إدارة المستخدمين والصلاحيات</div></div>
         <div id="users-list-container" style="margin-bottom:15px; display:flex; flex-direction:column; gap:8px;"></div>
         <div style="background:#f9fafb; padding:15px; border-radius:10px; border:1px dashed #c9a96e;">
@@ -577,6 +579,151 @@ function applyPermissions() {
 }
 
 
+async function loadProducts(){
+  const stored = await dbGet('products');
+  if(stored&&Array.isArray(stored)&&stored.length) allProducts=stored;
+  else allProducts=JSON.parse(localStorage.getItem('local_db_products')||'[]');
+}
+
+const CAT={boxes:'بوكسات',trays:'صواني',gifts:'هدايا',hospitality:'ضيافة',corporate:'شركات'};
+
+// ── PRODUCT VIEW LOGIC ──
+let productViewMode = 'grid';
+function setProductView(mode) {
+  productViewMode = mode;
+  document.getElementById('view-grid-btn').style.background = mode === 'grid' ? '#e8eef3' : 'transparent';
+  document.getElementById('view-list-btn').style.background = mode === 'list' ? '#e8eef3' : 'transparent';
+  renderProducts(document.querySelector('.search-box input').value);
+}
+
+function renderProducts(search=''){
+  const searchStr = document.querySelector('.search-box input').value.toLowerCase();
+  const cat = document.getElementById('product-category-filter') ? document.getElementById('product-category-filter').value : 'all';
+  let list = allProducts;
+  if(searchStr) list = list.filter(p=>p.name.toLowerCase().includes(searchStr));
+  if(cat !== 'all') list = list.filter(p=>p.category === cat);
+  document.getElementById('products-count-bar').textContent=list.length+' منتج';
+  const container = document.getElementById('products-grid');
+
+  if(list.length === 0) {
+    container.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><i class="fa-solid fa-box-open"></i><p>لا توجد منتجات</p></div>';
+    return;
+  }
+
+  if(productViewMode === 'grid') {
+    container.style.display = 'grid';
+    container.innerHTML=list.map(p=>`
+      <div class="product-card">
+        <img class="product-card-img" src="${p.image}" alt="${p.name}" onerror="this.style.background='#f0e6d3';this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'260\\' height=\\'160\\'><rect fill=\\'%23f0e6d3\\' width=\\'260\\' height=\\'160\\'/><text x=\\'50%25\\' y=\\'55%25\\' text-anchor=\\'middle\\' font-size=\\'40\\'>🍫</text></svg>'">
+        <div class="product-card-body">
+          <div class="product-card-name">${p.name}</div>
+          <div class="product-card-meta">
+            <div class="product-card-price">${p.price} ر.س</div>
+            <span style="background:#f0f4f8;color:#555;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700">${CAT[p.category]||p.category}</span>
+          </div>
+          ${p.isNew?'<span style="background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:700;margin-top:6px;display:inline-block">جديد ✨</span>':''}
+          ${p.isSale?'<span style="background:#fff3e0;color:#e65100;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:700;margin-top:6px;display:inline-block;margin-right:4px">عرض 🔥</span>':''}
+          <div class="product-card-actions">
+            <button class="btn btn-primary btn-sm" style="flex:1" onclick="openEditModal(${p.id})"><i class="fa-solid fa-pen"></i> تعديل</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>
+      </div>`).join('');
+  } else {
+    container.style.display = 'block';
+    container.innerHTML=`
+      <div style="overflow-x:auto;width:100%;">
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th>صورة</th>
+              <th>اسم المنتج</th>
+              <th>التصنيف</th>
+              <th>السعر</th>
+              <th>الحالة</th>
+              <th>الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${list.map(p=>`
+              <tr>
+                <td><img src="${p.image}" style="width:45px;height:45px;border-radius:10px;object-fit:cover;border:1px solid #e8eef3;" onerror="this.style.background='#f0e6d3';this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'45\\' height=\\'45\\'><rect fill=\\'%23f0e6d3\\' width=\\'45\\' height=\\'45\\'/><text x=\\'50%25\\' y=\\'55%25\\' text-anchor=\\'middle\\' font-size=\\'16\\'>🍫</text></svg>'"></td>
+                <td style="font-weight:700;color:#1a1a2e;">${p.name}</td>
+                <td><span style="background:#f0f4f8;color:#555;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700">${CAT[p.category]||p.category}</span></td>
+                <td style="color:#c9a96e;font-weight:800;">${p.price} ر.س</td>
+                <td>
+                  ${p.isNew?'<span style="background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:700;display:inline-block">جديد ✨</span>':''}
+                  ${p.isSale?'<span style="background:#fff3e0;color:#e65100;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:700;display:inline-block;margin-right:4px">عرض 🔥</span>':''}
+                </td>
+                <td>
+                  <button class="btn btn-primary btn-sm" onclick="openEditModal(${p.id})"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})"><i class="fa-solid fa-trash"></i></button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+}
+
+
+function searchProducts(q){ renderProducts(q); }
+
+function openAddModal(){
+  editingId=null;
+  document.getElementById('modal-title').textContent='إضافة منتج جديد';
+  ['edit-name','edit-price','edit-orig','edit-img'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('edit-cat').value='boxes';
+  document.getElementById('edit-new').checked=false;
+  document.getElementById('edit-sale').checked=false;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function openEditModal(id){
+  const p=allProducts.find(x=>x.id===id); if(!p)return;
+  editingId=id;
+  document.getElementById('modal-title').textContent='تعديل منتج';
+  document.getElementById('edit-id').value=id;
+  document.getElementById('edit-name').value=p.name;
+  document.getElementById('edit-price').value=p.price;
+  document.getElementById('edit-orig').value=p.originalPrice||'';
+  document.getElementById('edit-img').value=p.image;
+  document.getElementById('edit-cat').value=p.category;
+  document.getElementById('edit-new').checked=!!p.isNew;
+  document.getElementById('edit-sale').checked=!!p.isSale;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(){ document.getElementById('modal-overlay').classList.remove('open'); }
+
+async function saveProduct(){
+  const name=document.getElementById('edit-name').value.trim();
+  const price=parseFloat(document.getElementById('edit-price').value)||0;
+  if(!name||!price){toast('⚠️ أدخل اسم المنتج والسعر');return;}
+  if(editingId){
+    const idx=allProducts.findIndex(x=>x.id===editingId);
+    allProducts[idx]={...allProducts[idx],name,price,originalPrice:parseFloat(document.getElementById('edit-orig').value)||null,image:document.getElementById('edit-img').value.trim(),category:document.getElementById('edit-cat').value,isNew:document.getElementById('edit-new').checked,isSale:document.getElementById('edit-sale').checked};
+  } else {
+    const newId=Math.max(0,...allProducts.map(p=>p.id))+1;
+    allProducts.push({id:newId,name,price,originalPrice:parseFloat(document.getElementById('edit-orig').value)||null,image:document.getElementById('edit-img').value.trim()||'assets/chocolate_tray.jpg',category:document.getElementById('edit-cat').value,isNew:document.getElementById('edit-new').checked,isSale:document.getElementById('edit-sale').checked,description:''});
+  }
+  await dbSet('products',allProducts);
+  localStorage.setItem('local_db_products',JSON.stringify(allProducts));
+  renderProducts(); closeModal();
+  toast(editingId?'✅ تم تحديث المنتج!':'✅ تم إضافة المنتج!');
+}
+
+function deleteProduct(id){
+  const p=allProducts.find(x=>x.id===id); if(!p)return;
+  showConfirmModal('هل أنت متأكد من حذف المنتج: ' + p.name + ' نهائياً؟', async () => {
+    allProducts=allProducts.filter(x=>x.id!==id);
+    await dbSet('products',allProducts);
+    renderProducts(); toast('تم حذف المنتج');
+  });
+}
+
 // ── CUSTOMERS ──
 function renderCustomers(){
   const list=Object.values(allCustomers);
@@ -646,11 +793,35 @@ async function renderCRM() {
 }
 
 
+async function saveCredentials() {
+  const u = document.getElementById('setting-user').value.trim();
+  const p = document.getElementById('setting-pass').value;
+  if(!u) return toast('اسم المستخدم مطلوب');
+  let s = await dbGet('settings') || {};
+  let users = s.users || [{u:'admin', p:'Belami@2026', role:'all'}];
+  
+  const currentUser = localStorage.getItem('saved_admin_user') || 'admin';
+  let idx = users.findIndex(x => x.u === currentUser);
+  if(idx === -1) idx = 0;
+  
+  users[idx].u = u;
+  if(p) users[idx].p = p;
+  
+  s.users = users;
+  await dbSet('settings', s);
+  
+  localStorage.setItem('saved_admin_user', u);
+  renderUsersList();
+  document.getElementById('setting-pass').value = '';
+  toast('تم تحديث بيانات الحساب الحالي بنجاح!');
+}
+
+
 async function loadSettings(){
   const s=await dbGet('settings');
   if(s){
     document.getElementById('shipping-cost').value=s.shippingCost||35;
-    document.getElementById('setting-user').value=s.adminUser||'admin';
+    document.getElementById('setting-user').value=localStorage.getItem('saved_admin_user')||'admin';
     document.getElementById('pickup-enabled').checked=s.pickupEnabled!==false;
     document.getElementById('coupon10-enabled').checked=s.coupon10Enabled!==false;
     renderUsersList();
@@ -807,6 +978,8 @@ function startOrderMonitoring(){
 </div>
 <style>
 @keyframes slideUp { to { transform:translateY(0); } }
+.sidebar::-webkit-scrollbar { display: none; }
+.sidebar { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
 
 <!-- 🔔 NOTIFICATION TOGGLE BUTTON -->
@@ -870,6 +1043,10 @@ initApp = async function(){
 </script>
 </body>
 </html>
+
+
+
+
 
 
 
