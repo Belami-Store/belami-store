@@ -622,9 +622,9 @@ function renderProducts(search=''){
 
   if(productViewMode === 'grid') {
     container.style.display = 'grid';
-    container.innerHTML=list.map(p=>
+    container.innerHTML=list.map(p=>`
       <div class="product-card">
-        <img class="product-card-img" src="${p.image}" alt="${p.name}" onerror="this.style.background='#f0e6d3';this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'260\' height=\'160\'><rect fill=\'%23f0e6d3\' width=\'260\' height=\'160\'/><text x=\'50%25\' y=\'55%25\' text-anchor=\'middle\' font-size=\'40\'>🍫</text></svg>'">
+        <img class="product-card-img" src="${p.image}" alt="${p.name}" onerror="this.style.background='#f0e6d3';this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'260\\' height=\\'160\\'><rect fill=\\'%23f0e6d3\\' width=\\'260\\' height=\\'160\\'/><text x=\\'50%25\\' y=\\'55%25\\' text-anchor=\\'middle\\' font-size=\\'40\\'>🍫</text></svg>'">
         <div class="product-card-body">
           <div class="product-card-name">${p.name}</div>
           <div class="product-card-meta">
@@ -638,10 +638,10 @@ function renderProducts(search=''){
             <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})"><i class="fa-solid fa-trash"></i></button>
           </div>
         </div>
-      </div>).join('');
+      </div>`).join('');
   } else {
     container.style.display = 'block';
-    container.innerHTML=
+    container.innerHTML=`
       <div style="overflow-x:auto;width:100%;">
         <table class="orders-table">
           <thead>
@@ -655,9 +655,9 @@ function renderProducts(search=''){
             </tr>
           </thead>
           <tbody>
-            ${list.map(p=>
+            ${list.map(p=>`
               <tr>
-                <td><img src="${p.image}" style="width:45px;height:45px;border-radius:10px;object-fit:cover;border:1px solid #e8eef3;" onerror="this.style.background='#f0e6d3';this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'45\' height=\'45\'><rect fill=\'%23f0e6d3\' width=\'45\' height=\'45\'/><text x=\'50%25\' y=\'55%25\' text-anchor=\'middle\' font-size=\'16\'>🍫</text></svg>'"></td>
+                <td><img src="${p.image}" style="width:45px;height:45px;border-radius:10px;object-fit:cover;border:1px solid #e8eef3;" onerror="this.style.background='#f0e6d3';this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'45\\' height=\\'45\\'><rect fill=\\'%23f0e6d3\\' width=\\'45\\' height=\\'45\\'/><text x=\\'50%25\\' y=\\'55%25\\' text-anchor=\\'middle\\' font-size=\\'16\\'>🍫</text></svg>'"></td>
                 <td style="font-weight:700;color:#1a1a2e;">${p.name}</td>
                 <td><span style="background:#f0f4f8;color:#555;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700">${CAT[p.category]||p.category}</span></td>
                 <td style="color:#c9a96e;font-weight:800;">${p.price} ر.س</td>
@@ -670,13 +670,14 @@ function renderProducts(search=''){
                   <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})"><i class="fa-solid fa-trash"></i></button>
                 </td>
               </tr>
-            ).join('')}
+            `).join('')}
           </tbody>
         </table>
       </div>
-    ;
+    `;
   }
 }
+
 
 function searchProducts(q){ renderProducts(q); }
 
@@ -964,6 +965,7 @@ initApp = async function(){
 </script>
 </body>
 </html>
+
 
 
 
