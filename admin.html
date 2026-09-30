@@ -519,15 +519,15 @@ async function renderUsersList() {
   let s = await dbGet('settings') || {};
   let users = s.users || [{u:'admin', p:'Belami@2026', role:'all'}];
   const roleNames = {all:'مدير عام', orders:'الطلبات فقط', products:'المنتجات فقط'};
-  document.getElementById('users-list-container').innerHTML = users.map((x, i) => 
+  document.getElementById('users-list-container').innerHTML = users.map((x, i) => `
     <div style="display:flex; justify-content:space-between; align-items:center; background:#f0f4f8; padding:10px; border-radius:8px;">
       <div>
-        <div style="font-weight:700; color:#1a7fbd;"> + x.u + </div>
-        <div style="font-size:0.75rem; color:#666;"> + roleNames[x.role] + </div>
+        <div style="font-weight:700; color:#1a7fbd;">${x.u}</div>
+        <div style="font-size:0.75rem; color:#666;">${roleNames[x.role]}</div>
       </div>
-       + (i === 0 ? '<span style="font-size:0.7rem; background:#c9a96e; color:#fff; padding:2px 6px; border-radius:10px;">الرئيسي</span>' : <button onclick="deleteUser(+i+)" style="background:none; border:none; color:#e53e3e; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>) + 
+      ${i === 0 ? '<span style="font-size:0.7rem; background:#c9a96e; color:#fff; padding:2px 6px; border-radius:10px;">الرئيسي</span>' : `<button onclick="deleteUser(${i})" style="background:none; border:none; color:#e53e3e; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>`}
     </div>
-  ).join('');
+  `).join('');
 }
 
 async function addUser() {
@@ -574,283 +574,8 @@ function applyPermissions() {
     });
     if(!document.getElementById('page-products').classList.contains('active')) showPage('products');
   }
-};
-  s.adminUser = u;
-  if(p) s.adminPass = p;
-  await dbSet('settings', s);
-  toast('✅ تم تحديث بيانات الدخول بنجاح');
-  document.getElementById('setting-pass').value = '';
-}
-function logout(){ localStorage.removeItem('admin_session_expiry'); location.reload(); }
-document.getElementById('pw').addEventListener('keydown',e=>e.key==='Enter'&&login());
-
-// ── DATE ──
-let isHijri = true;
-function renderSidebarDate() {
-  const now = new Date();
-  const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  const d = document.getElementById('sidebar-date-text');
-  if(d) {
-    if(isHijri) {
-      d.textContent = now.toLocaleDateString('ar-SA-u-nu-latn', opts);
-    } else {
-      d.textContent = now.toLocaleDateString('ar-EG-u-nu-latn', opts);
-    }
-  }
-  const pd = document.getElementById('page-date');
-  if(pd) pd.textContent = 'آخر تحديث: ' + now.toLocaleTimeString('ar-SA-u-nu-latn');
-}
-function toggleDateCalendar() {
-  isHijri = !isHijri;
-  renderSidebarDate();
-}
-renderSidebarDate();
-
-// ── DB ──
-async function dbGet(key){ try{ const r=await fetch(`${DB}/${key}?t=${Date.now()}`,{headers:{Accept:'application/json'}}); if(r.status===200)return await r.json(); }catch(e){} return null; }
-async function dbSet(key,val){ await fetch(`${DB}/${key}?t=${Date.now()}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(val)}); }
-
-// ── INIT ──
-async function initApp(){
-  await Promise.all([loadProducts(), loadBanner(), loadSettings()]);
-  loadLocalData();
-  applyPermissions();
-  renderHome();
 }
 
-function loadLocalData(){
-  allOrders = JSON.parse(localStorage.getItem('belami_orders')||'[]');
-  allCustomers = JSON.parse(localStorage.getItem('belami_customers')||'{}');
-}
-
-// ── NAVIGATION ──
-function showPage(page){
-  document.querySelectorAll('.page-content').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('page-'+page).classList.add('active');
-  event.currentTarget.classList.add('active');
-  const titles={home:'الرئيسية',orders:'الطلبات',products:'المنتجات',customers:'العملاء',settings:'إعدادات المتجر',crm:'الإحصائيات و CRM'};
-  document.getElementById('page-title').textContent=titles[page];
-  if(page==='orders') renderOrders();
-  if(page==='products') renderProducts();
-  if(page==='crm') renderCRM();
-  if(page==='customers') renderCustomers();
-  if(page==='settings') loadBanner();
-}
-
-// ── HOME ──
-function renderHome(){
-  const totalSales = allOrders.reduce((s,o)=>s+(parseFloat(o.total)||0),0);
-  const stats = [
-    {icon:'fa-bag-shopping',bg:'#e3f2fd',color:'#1a7fbd',num:allOrders.length,label:'إجمالي الطلبات'},
-    {icon:'fa-circle-dollar-to-slot',bg:'#e8f5e9',color:'#2e7d32',num:totalSales.toFixed(0)+' ر.س',label:'إجمالي المبيعات'},
-    {icon:'fa-users',bg:'#f3e5f5',color:'#6a1b9a',num:Object.keys(allCustomers).length,label:'إجمالي العملاء'},
-    {icon:'fa-box-open',bg:'#fff3e0',color:'#e65100',num:allProducts.length,label:'عدد المنتجات'},
-  ];
-  document.getElementById('stats-grid').innerHTML = stats.map(s=>`
-    <div class="stat-card">
-      <div class="stat-icon" style="background:${s.bg};color:${s.color}"><i class="fa-solid ${s.icon}"></i></div>
-      <div><div class="stat-num">${s.num}</div><div class="stat-label">${s.label}</div></div>
-    </div>`).join('');
-
-  const recent = [...allOrders].reverse().slice(0,8);
-  document.getElementById('home-orders-list').innerHTML = recent.length ? `
-    <table class="orders-table"><thead><tr><th>العميل</th><th>المبلغ</th><th>التاريخ</th><th>الحالة</th></tr></thead><tbody>
-    ${recent.map(o=>`<tr>
-      <td><div class="customer-cell"><div class="customer-avatar">${o.name?.[0]||'؟'}</div><div><div class="customer-info">${o.name||'—'}</div><div class="customer-phone">${o.phone||''}</div></div></div></td>
-      <td class="order-amount">${parseFloat(o.total||0).toFixed(0)} ر.س</td>
-      <td style="color:#8fa8c0;font-size:.8rem">${o.date||'—'}</td>
-      <td><span class="status-badge status-done">تم</span></td>
-    </tr>`).join('')}
-    </tbody></table>` : '<div class="empty-state"><i class="fa-solid fa-inbox"></i><p>لا توجد طلبات بعد</p></div>';
-
-  const alerts = JSON.parse(localStorage.getItem('belami_alerts')||'[]').slice(0,20);
-  document.getElementById('home-alerts').innerHTML = alerts.length ? alerts.map(a=>`
-    <div style="padding:10px 0;border-bottom:1px solid #f5f7fa;font-size:.82rem">
-      <div style="font-weight:600">${a.message||''}</div>
-      <div style="color:#aaa;font-size:.75rem;margin-top:2px">${a.time||''}</div>
-    </div>`).join('') : '<div style="text-align:center;padding:30px;color:#aaa">لا توجد تنبيهات</div>';
-}
-
-// ── ORDERS ──
-function renderOrders(filter){
-  if(filter) currentFilter=filter;
-  let orders=[...allOrders].reverse();
-  if(currentFilter==='done') orders=orders.filter(o=>o.status==='done'||!o.status);
-  if(currentFilter==='pending') orders=orders.filter(o=>o.status==='pending');
-  document.getElementById('orders-count-badge').textContent=orders.length+' طلب';
-  document.getElementById('orders-tbody').innerHTML=orders.length?orders.map(o=>`<tr>
-    <td style="font-weight:700;color:#1a7fbd;font-size:.82rem">#${o.orderId||'—'}</td>
-    <td><div class="customer-cell"><div class="customer-avatar">${o.name?.[0]||'؟'}</div><div><div class="customer-info">${o.name||'—'}</div><div class="customer-phone">${o.phone||''}</div></div></div></td>
-    <td style="color:#555">${o.city||'—'}</td>
-    <td style="font-size:.8rem;max-width:180px">${(o.items||[]).map(i=>i.name+' ×'+i.quantity).join('، ')}</td>
-    <td class="order-amount">${parseFloat(o.total||0).toFixed(0)} ر.س</td>
-    <td style="font-size:.78rem;color:#666">${o.paymentMethod||'—'}</td>
-    <td style="color:#8fa8c0;font-size:.78rem">${o.date||'—'}</td>
-    <td><span class="status-badge status-done">تم</span></td>
-  </tr>`).join(''):`<tr><td colspan="8"><div class="empty-state"><i class="fa-solid fa-inbox"></i><p>لا توجد طلبات</p></div></td></tr>`;
-}
-
-function filterOrders(f,el){
-  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
-  el.classList.add('active'); renderOrders(f);
-}
-
-// ── PRODUCTS ──
-async function loadProducts(){
-  const stored = await dbGet('products');
-  if(stored&&Array.isArray(stored)&&stored.length) allProducts=stored;
-  else allProducts=JSON.parse(localStorage.getItem('local_db_products')||'[]');
-}
-
-const CAT={boxes:'بوكسات',trays:'صواني',gifts:'هدايا',hospitality:'ضيافة',corporate:'شركات'};
-
-// ── PRODUCT VIEW LOGIC ──
-let productViewMode = 'grid';
-function setProductView(mode) {
-  productViewMode = mode;
-  document.getElementById('view-grid-btn').style.background = mode === 'grid' ? '#e8eef3' : 'transparent';
-  document.getElementById('view-list-btn').style.background = mode === 'list' ? '#e8eef3' : 'transparent';
-  renderProducts(document.querySelector('.search-box input').value);
-}
-
-function renderProducts(search=''){
-  const searchStr = document.querySelector('.search-box input').value.toLowerCase();
-  const cat = document.getElementById('product-category-filter') ? document.getElementById('product-category-filter').value : 'all';
-  let list = allProducts;
-  if(searchStr) list = list.filter(p=>p.name.toLowerCase().includes(searchStr));
-  if(cat !== 'all') list = list.filter(p=>p.category === cat);
-  document.getElementById('products-count-bar').textContent=list.length+' منتج';
-  const container = document.getElementById('products-grid');
-
-  if(list.length === 0) {
-    container.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><i class="fa-solid fa-box-open"></i><p>لا توجد منتجات</p></div>';
-    return;
-  }
-
-  if(productViewMode === 'grid') {
-    container.style.display = 'grid';
-    container.innerHTML=list.map(p=>`
-      <div class="product-card">
-        <img class="product-card-img" src="${p.image}" alt="${p.name}" onerror="this.style.background='#f0e6d3';this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'260\\' height=\\'160\\'><rect fill=\\'%23f0e6d3\\' width=\\'260\\' height=\\'160\\'/><text x=\\'50%25\\' y=\\'55%25\\' text-anchor=\\'middle\\' font-size=\\'40\\'>🍫</text></svg>'">
-        <div class="product-card-body">
-          <div class="product-card-name">${p.name}</div>
-          <div class="product-card-meta">
-            <div class="product-card-price">${p.price} ر.س</div>
-            <span style="background:#f0f4f8;color:#555;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700">${CAT[p.category]||p.category}</span>
-          </div>
-          ${p.isNew?'<span style="background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:700;margin-top:6px;display:inline-block">جديد ✨</span>':''}
-          ${p.isSale?'<span style="background:#fff3e0;color:#e65100;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:700;margin-top:6px;display:inline-block;margin-right:4px">عرض 🔥</span>':''}
-          <div class="product-card-actions">
-            <button class="btn btn-primary btn-sm" style="flex:1" onclick="openEditModal(${p.id})"><i class="fa-solid fa-pen"></i> تعديل</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})"><i class="fa-solid fa-trash"></i></button>
-          </div>
-        </div>
-      </div>`).join('');
-  } else {
-    container.style.display = 'block';
-    container.innerHTML=`
-      <div style="overflow-x:auto;width:100%;">
-        <table class="orders-table">
-          <thead>
-            <tr>
-              <th>صورة</th>
-              <th>اسم المنتج</th>
-              <th>التصنيف</th>
-              <th>السعر</th>
-              <th>الحالة</th>
-              <th>الإجراءات</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${list.map(p=>`
-              <tr>
-                <td><img src="${p.image}" style="width:45px;height:45px;border-radius:10px;object-fit:cover;border:1px solid #e8eef3;" onerror="this.style.background='#f0e6d3';this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'45\\' height=\\'45\\'><rect fill=\\'%23f0e6d3\\' width=\\'45\\' height=\\'45\\'/><text x=\\'50%25\\' y=\\'55%25\\' text-anchor=\\'middle\\' font-size=\\'16\\'>🍫</text></svg>'"></td>
-                <td style="font-weight:700;color:#1a1a2e;">${p.name}</td>
-                <td><span style="background:#f0f4f8;color:#555;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700">${CAT[p.category]||p.category}</span></td>
-                <td style="color:#c9a96e;font-weight:800;">${p.price} ر.س</td>
-                <td>
-                  ${p.isNew?'<span style="background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:700;display:inline-block">جديد ✨</span>':''}
-                  ${p.isSale?'<span style="background:#fff3e0;color:#e65100;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:700;display:inline-block;margin-right:4px">عرض 🔥</span>':''}
-                </td>
-                <td>
-                  <button class="btn btn-primary btn-sm" onclick="openEditModal(${p.id})"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})"><i class="fa-solid fa-trash"></i></button>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    `;
-  }
-}
-
-
-function searchProducts(q){ renderProducts(q); }
-
-function openAddModal(){
-  editingId=null;
-  document.getElementById('modal-title').textContent='إضافة منتج جديد';
-  ['edit-name','edit-price','edit-orig','edit-img'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('edit-cat').value='boxes';
-  document.getElementById('edit-new').checked=false;
-  document.getElementById('edit-sale').checked=false;
-  document.getElementById('modal-overlay').classList.add('open');
-}
-
-function openEditModal(id){
-  const p=allProducts.find(x=>x.id===id); if(!p)return;
-  editingId=id;
-  document.getElementById('modal-title').textContent='تعديل منتج';
-  document.getElementById('edit-id').value=id;
-  document.getElementById('edit-name').value=p.name;
-  document.getElementById('edit-price').value=p.price;
-  document.getElementById('edit-orig').value=p.originalPrice||'';
-  document.getElementById('edit-img').value=p.image;
-  document.getElementById('edit-cat').value=p.category;
-  document.getElementById('edit-new').checked=!!p.isNew;
-  document.getElementById('edit-sale').checked=!!p.isSale;
-  document.getElementById('modal-overlay').classList.add('open');
-}
-
-function closeModal(){ document.getElementById('modal-overlay').classList.remove('open'); }
-
-async function saveProduct(){
-  const name=document.getElementById('edit-name').value.trim();
-  const price=parseFloat(document.getElementById('edit-price').value)||0;
-  if(!name||!price){toast('⚠️ أدخل اسم المنتج والسعر');return;}
-  if(editingId){
-    const idx=allProducts.findIndex(x=>x.id===editingId);
-    allProducts[idx]={...allProducts[idx],name,price,originalPrice:parseFloat(document.getElementById('edit-orig').value)||null,image:document.getElementById('edit-img').value.trim(),category:document.getElementById('edit-cat').value,isNew:document.getElementById('edit-new').checked,isSale:document.getElementById('edit-sale').checked};
-  } else {
-    const newId=Math.max(0,...allProducts.map(p=>p.id))+1;
-    allProducts.push({id:newId,name,price,originalPrice:parseFloat(document.getElementById('edit-orig').value)||null,image:document.getElementById('edit-img').value.trim()||'assets/chocolate_tray.jpg',category:document.getElementById('edit-cat').value,isNew:document.getElementById('edit-new').checked,isSale:document.getElementById('edit-sale').checked,description:''});
-  }
-  await dbSet('products',allProducts);
-  localStorage.setItem('local_db_products',JSON.stringify(allProducts));
-  renderProducts(); closeModal();
-  toast(editingId?'✅ تم تحديث المنتج!':'✅ تم إضافة المنتج!');
-}
-
-let pendingConfirmCallback = null;
-function showConfirmModal(msg, callback) {
-  document.getElementById('confirm-msg').textContent = msg;
-  pendingConfirmCallback = callback;
-  document.getElementById('confirm-overlay').style.display = 'flex';
-}
-function closeConfirmModal() {
-  document.getElementById('confirm-overlay').style.display = 'none';
-  pendingConfirmCallback = null;
-}
-function deleteProduct(id){
-  const p=allProducts.find(x=>x.id===id); if(!p)return;
-  showConfirmModal('هل أنت متأكد من حذف المنتج: ' + p.name + ' نهائياً؟', async () => {
-    allProducts=allProducts.filter(x=>x.id!==id);
-    await dbSet('products',allProducts);
-    renderProducts(); toast('تم حذف المنتج');
-  });
-}
 
 // ── CUSTOMERS ──
 function renderCustomers(){
@@ -891,19 +616,19 @@ async function saveBanner(){
   toast('✅ تم حفظ الشريط الترويجي وسيظهر على الموقع فوراً!');
 }
 
-// ── SETTINGS ──
+
 async function renderCRM() {
   // Load Visitors
   let visitors = await dbGet('crm_visitors') || [];
   visitors.reverse(); // newest first
-  document.getElementById('crm-visitors-tbody').innerHTML = visitors.length ? visitors.map(v=>
+  document.getElementById('crm-visitors-tbody').innerHTML = visitors.length ? visitors.map(v=>`
     <tr>
-      <td style="font-family:monospace;font-size:0.85rem;color:#1a7fbd;"></td>
-      <td style="font-weight:700;"></td>
-      <td></td>
-      <td style="font-size:0.75rem;color:#8fa8c0;"></td>
+      <td style="font-family:monospace;font-size:0.85rem;color:#1a7fbd;">${v.ip}</td>
+      <td style="font-weight:700;">${v.city}</td>
+      <td>${v.country}</td>
+      <td style="font-size:0.75rem;color:#8fa8c0;">${v.time}</td>
     </tr>
-  ).join('') : '<tr><td colspan="4" style="text-align:center;padding:20px;color:#8fa8c0;">لا يوجد زوار حالياً</td></tr>';
+  `).join('') : '<tr><td colspan="4" style="text-align:center;padding:20px;color:#8fa8c0;">لا يوجد زوار حالياً</td></tr>';
 
   // Load Views
   let views = await dbGet('crm_views') || {};
@@ -912,13 +637,14 @@ async function renderCRM() {
     return { name: p ? p.name : 'منتج محذوف ('+id+')', count: views[id] };
   }).sort((a,b) => b.count - a.count);
   
-  document.getElementById('crm-views-tbody').innerHTML = viewArray.length ? viewArray.map(v=>
+  document.getElementById('crm-views-tbody').innerHTML = viewArray.length ? viewArray.map(v=>`
     <tr>
-      <td style="font-weight:700;"></td>
-      <td style="color:#c9a96e;font-weight:900;"> 👀</td>
+      <td style="font-weight:700;">${v.name}</td>
+      <td style="color:#c9a96e;font-weight:900;">${v.count} 👀</td>
     </tr>
-  ).join('') : '<tr><td colspan="2" style="text-align:center;padding:20px;color:#8fa8c0;">لا توجد مشاهدات</td></tr>';
+  `).join('') : '<tr><td colspan="2" style="text-align:center;padding:20px;color:#8fa8c0;">لا توجد مشاهدات</td></tr>';
 }
+
 
 async function loadSettings(){
   const s=await dbGet('settings');
@@ -1103,6 +829,38 @@ function toggleNotif(){
 }
 
 // Show notif button and start monitoring when logged in
+
+
+async function initApp(){
+  await Promise.all([loadProducts(), loadBanner(), loadSettings()]);
+  loadLocalData();
+  applyPermissions();
+  renderHome();
+}
+
+function loadLocalData(){
+  allOrders = JSON.parse(localStorage.getItem('belami_orders')||'[]');
+  allCustomers = JSON.parse(localStorage.getItem('belami_customers')||'{}');
+}
+
+// ── NAVIGATION ──
+function showPage(page){
+  document.querySelectorAll('.page-content').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  
+  const el = document.getElementById('page-'+page);
+  if(el) el.classList.add('active');
+  
+  if(event && event.currentTarget && event.currentTarget.classList) {
+    event.currentTarget.classList.add('active');
+  }
+
+  if(page==='orders') renderOrders();
+  if(page==='products') renderProducts();
+  if(page==='customers') renderCustomers();
+  if(page==='crm') renderCRM();
+}
+
 const _origInit = initApp;
 initApp = async function(){
   await _origInit();

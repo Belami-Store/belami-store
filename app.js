@@ -566,11 +566,11 @@ async function checkMoyasarCallback() {
 async function syncCloudData() {
     try {
         // Fetch Banner
-        const bannerData = await dbFetch('banner', null);
-        const topBanner = document.getElementById('top-announcement-bar');
+        const bannerData = await dbFetch('banner', null);        const topBanner = document.getElementById('top-announcement-bar');
         if (topBanner) {
             if (bannerData && (bannerData.visible === false || bannerData.visible === 'false')) {
                 topBanner.style.display = 'none';
+
             } else {
                 topBanner.style.display = 'block';
                 const text = bannerData ? bannerData.text : '🔥 لا تفوتكم عروض ما قبل الإجازة السنوية (خصم 10%) &nbsp; | &nbsp; ⏳ آخر وقت للطلب 28 يوليو 🎁';
@@ -3163,7 +3163,6 @@ document.addEventListener('input', function(e) {
         }
     }
 });
-
 
 
 
