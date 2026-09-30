@@ -373,6 +373,37 @@ document.addEventListener('input', function(e) {
         <button class="btn btn-primary" onclick="saveShipping()"><i class="fa-solid fa-floppy-disk"></i> حفظ إعدادات التوصيل</button>
       </div>
 
+            <!-- Moyasar Payment Settings -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><i class="fa-solid fa-shield-halved" style="color:#c9a96e"></i> بوابة الدفع الإلكتروني (ميسر Moyasar)</div>
+        </div>
+        <div class="toggle-row" style="margin-bottom:12px">
+          <label class="switch"><input type="checkbox" id="moyasar-enabled" checked><span class="slider"></span></label>
+          <span style="font-weight:700;font-size:.9rem">تفعيل الدفع الإلكتروني عبر ميسر (Moyasar)</span>
+        </div>
+        <div class="toggle-row" style="margin-bottom:12px">
+          <label class="switch"><input type="checkbox" id="moyasar-test-mode"><span class="slider"></span></label>
+          <span style="font-weight:700;font-size:.9rem">وضع الاختبار التجريبي (Sandbox Test Mode)</span>
+        </div>
+        <div class="form-group">
+          <label>مفتاح النشر العام (Publishable API Key)</label>
+          <input type="text" id="moyasar-key" class="form-control" placeholder="pk_live_xxxxxxxxxxxxxxxx أو pk_test_..." style="font-family:monospace; font-size:.85rem">
+          <small style="color:#888; font-size:.75rem; display:block; margin-top:4px">اتركه فارغاً في وضع الاختبار لاستخدام المفتاح التجريبي التلقائي.</small>
+        </div>
+        <div class="form-group">
+          <label>البطاقات والوسائل المدعومة عبر ميسر</label>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:6px;">
+            <span style="background:#f0f4f8; padding:5px 12px; border-radius:20px; font-size:0.78rem; font-weight:700; color:#1a1a2e;"><i class="fa-solid fa-credit-card"></i> بطاقات مدى (Mada)</span>
+            <span style="background:#f0f4f8; padding:5px 12px; border-radius:20px; font-size:0.78rem; font-weight:700; color:#1a1a2e;"><i class="fa-brands fa-cc-visa"></i> فيزا (Visa)</span>
+            <span style="background:#f0f4f8; padding:5px 12px; border-radius:20px; font-size:0.78rem; font-weight:700; color:#1a1a2e;"><i class="fa-brands fa-cc-mastercard"></i> ماستركارد</span>
+            <span style="background:#f0f4f8; padding:5px 12px; border-radius:20px; font-size:0.78rem; font-weight:700; color:#1a1a2e;"><i class="fa-brands fa-apple"></i> Apple Pay</span>
+          </div>
+        </div>
+        <button class="btn btn-primary" style="width:100%; margin-top:8px" onclick="saveMoyasarSettings()"><i class="fa-solid fa-floppy-disk"></i> حفظ وتفعيل بوابة ميسر</button>
+      </div>
+
+
       <!-- Coupons Settings -->
       <div class="card">
         <div class="card-header"><div class="card-title"><i class="fa-solid fa-ticket"></i> الكوبونات والعروض</div></div>
@@ -420,7 +451,43 @@ document.addEventListener('input', function(e) {
       <div class="form-group"><label>السعر (<img src='assets/sar.png' class='currency-icon' alt='SAR'>)</label><input type="number" id="edit-price" placeholder="250"></div>
       <div class="form-group"><label>السعر قبل الخصم</label><input type="number" id="edit-orig" placeholder="300"></div>
     </div>
-    <div class="form-group"><label>مسار الصورة (assets/xxx.jpg)</label><input type="text" id="edit-img" placeholder="assets/product.jpg"></div>
+        <!-- Product Image Preview & Upload -->
+    <div class="form-group" style="margin-bottom:14px;">
+      <label style="display:block; margin-bottom:8px; font-weight:700;">صورة المنتج</label>
+      <div style="display:flex; align-items:center; gap:14px; background:#f9fafb; padding:12px; border-radius:12px; border:1px solid #e2e8f0;">
+        <img id="edit-img-preview" src="assets/chocolate_tray.jpg" alt="معاينة" style="width:75px; height:75px; object-fit:cover; border-radius:10px; border:2px solid #c9a96e; box-shadow:0 3px 8px rgba(0,0,0,0.08); background:#fff; flex-shrink:0;">
+        <div style="flex:1;">
+          <label for="edit-img-file" class="btn btn-primary btn-sm" style="cursor:pointer; display:inline-flex; align-items:center; gap:6px; margin:0 0 6px 0;">
+            <i class="fa-solid fa-cloud-arrow-up"></i> رفع صورة من جهازك / جوالك
+          </label>
+          <input type="file" id="edit-img-file" accept="image/*" style="display:none" onchange="handleAdminImageUpload(event)">
+          <div style="font-size:0.75rem; color:#888;">اختر صورة من الجوال أو الكمبيوتر، وسيتم تحسين حجمها تلقائياً.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>أو مسار / رابط الصورة المباشر</label>
+      <input type="text" id="edit-img" class="form-control" placeholder="assets/xxx.jpg أو رابط https://" oninput="updateAdminImagePreview(this.value)">
+    </div>
+
+    <!-- Quick Store Presets Gallery -->
+    <div class="form-group" style="margin-bottom:14px;">
+      <label style="font-size:0.8rem; color:#666; margin-bottom:6px; display:block;"><i class="fa-solid fa-images"></i> أو اختر مباشرة من مكتبة صور المتجر الجاهزة:</label>
+      <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:6px;" class="custom-scroll">
+        <img src="assets/luxury_chocolate_box.jpg" title="بوكس ملكي" onclick="selectPresetImage('assets/luxury_chocolate_box.jpg')" style="width:48px; height:48px; object-fit:cover; border-radius:8px; border:1px solid #ddd; cursor:pointer; flex-shrink:0;">
+        <img src="assets/chocolate_tray.jpg" title="صينية شوكولاتة" onclick="selectPresetImage('assets/chocolate_tray.jpg')" style="width:48px; height:48px; object-fit:cover; border-radius:8px; border:1px solid #ddd; cursor:pointer; flex-shrink:0;">
+        <img src="assets/daily_coffee_all.jpg" title="قهوتك اليوم" onclick="selectPresetImage('assets/daily_coffee_all.jpg')" style="width:48px; height:48px; object-fit:cover; border-radius:8px; border:1px solid #ddd; cursor:pointer; flex-shrink:0;">
+        <img src="assets/cremino_box.jpg" title="بوكس كريمينو" onclick="selectPresetImage('assets/cremino_box.jpg')" style="width:48px; height:48px; object-fit:cover; border-radius:8px; border:1px solid #ddd; cursor:pointer; flex-shrink:0;">
+        <img src="assets/pecan_box.jpg" title="بوكس بيكان" onclick="selectPresetImage('assets/pecan_box.jpg')" style="width:48px; height:48px; object-fit:cover; border-radius:8px; border:1px solid #ddd; cursor:pointer; flex-shrink:0;">
+        <img src="assets/tulip_tray.jpg" title="صينية توليب" onclick="selectPresetImage('assets/tulip_tray.jpg')" style="width:48px; height:48px; object-fit:cover; border-radius:8px; border:1px solid #ddd; cursor:pointer; flex-shrink:0;">
+        <img src="assets/signature_tray.jpg" title="صينية سيجنتشر" onclick="selectPresetImage('assets/signature_tray.jpg')" style="width:48px; height:48px; object-fit:cover; border-radius:8px; border:1px solid #ddd; cursor:pointer; flex-shrink:0;">
+        <img src="assets/gift_tray.jpg" title="صينية إهداء" onclick="selectPresetImage('assets/gift_tray.jpg')" style="width:48px; height:48px; object-fit:cover; border-radius:8px; border:1px solid #ddd; cursor:pointer; flex-shrink:0;">
+        <img src="assets/corporate_gift.jpg" title="هدايا شركات" onclick="selectPresetImage('assets/corporate_gift.jpg')" style="width:48px; height:48px; object-fit:cover; border-radius:8px; border:1px solid #ddd; cursor:pointer; flex-shrink:0;">
+        <img src="assets/sugar_free_chocolate.jpg" title="شوكولاتة دايت" onclick="selectPresetImage('assets/sugar_free_chocolate.jpg')" style="width:48px; height:48px; object-fit:cover; border-radius:8px; border:1px solid #ddd; cursor:pointer; flex-shrink:0;">
+      </div>
+    </div>
+
     <div class="form-group">
       <label>الفئة</label>
       <select id="edit-cat">
@@ -685,7 +752,7 @@ function searchProducts(q){ renderProducts(q); }
 function openAddModal(){
   editingId=null;
   document.getElementById('modal-title').textContent='إضافة منتج جديد';
-  ['edit-name','edit-price','edit-orig','edit-img'].forEach(id=>document.getElementById(id).value='');
+  ['edit-name','edit-price','edit-orig','edit-img'].forEach(id=>document.getElementById(id).value=''); if(document.getElementById('edit-img-preview')) document.getElementById('edit-img-preview').src='assets/chocolate_tray.jpg'; if(document.getElementById('edit-img-file')) document.getElementById('edit-img-file').value='';
   document.getElementById('edit-cat').value='boxes';
   document.getElementById('edit-new').checked=false;
   document.getElementById('edit-sale').checked=false;
@@ -700,7 +767,7 @@ function openEditModal(id){
   document.getElementById('edit-name').value=p.name;
   document.getElementById('edit-price').value=p.price;
   document.getElementById('edit-orig').value=p.originalPrice||'';
-  document.getElementById('edit-img').value=p.image;
+  document.getElementById('edit-img').value=p.image; if(document.getElementById('edit-img-preview')) document.getElementById('edit-img-preview').src=p.image||'assets/chocolate_tray.jpg'; if(document.getElementById('edit-img-file')) document.getElementById('edit-img-file').value='';
   document.getElementById('edit-cat').value=p.category;
   document.getElementById('edit-new').checked=!!p.isNew;
   document.getElementById('edit-sale').checked=!!p.isSale;
@@ -846,6 +913,12 @@ async function loadSettings(){
     document.getElementById('pickup-enabled').checked=s.pickupEnabled!==false;
     document.getElementById('coupon10-enabled').checked=s.coupon10Enabled!==false;
     renderUsersList();
+    const moyasarEnabled = document.getElementById('moyasar-enabled');
+    if(moyasarEnabled) moyasarEnabled.checked = (s.activeGateway === 'moyasar' || !s.activeGateway || s.activeGateway !== 'paylink');
+    const moyasarTest = document.getElementById('moyasar-test-mode');
+    if(moyasarTest) moyasarTest.checked = (s.testMode !== false);
+    const moyasarKey = document.getElementById('moyasar-key');
+    if(moyasarKey) moyasarKey.value = s.moyasarKey || '';
   }
 }
 
@@ -1095,9 +1168,61 @@ initApp = async function(){
   document.getElementById('notif-toggle').style.display = 'block';
   startOrderMonitoring();
 };
+
+function handleAdminImageUpload(e){
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  toast('⏳ جاري معالجة وضغط الصورة...');
+  const reader = new FileReader();
+  reader.onload = function(evt){
+    const img = new Image();
+    img.onload = function(){
+      const canvas = document.createElement('canvas');
+      let w = img.width, h = img.height;
+      const maxDim = 600;
+      if(w > maxDim || h > maxDim){
+        if(w > h){ h = Math.round((h * maxDim) / w); w = maxDim; }
+        else { w = Math.round((w * maxDim) / h); h = maxDim; }
+      }
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+      document.getElementById('edit-img').value = dataUrl;
+      document.getElementById('edit-img-preview').src = dataUrl;
+      toast('✅ تم رفع وتحديث صورة المنتج بنجاح!');
+    };
+    img.onerror = function(){ toast('⚠️ تعذر قراءة ملف الصورة'); };
+    img.src = evt.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function updateAdminImagePreview(val){
+  document.getElementById('edit-img-preview').src = val.trim() || 'assets/chocolate_tray.jpg';
+}
+
+function selectPresetImage(path){
+  document.getElementById('edit-img').value = path;
+  document.getElementById('edit-img-preview').src = path;
+  toast('✅ تم اختيار صورة المنتج من المعرض');
+}
+
+async function saveMoyasarSettings(){
+  const s = await dbGet('settings') || {};
+  const isEnabled = document.getElementById('moyasar-enabled').checked;
+  s.activeGateway = isEnabled ? 'moyasar' : 'bank';
+  s.testMode = document.getElementById('moyasar-test-mode').checked;
+  s.moyasarKey = document.getElementById('moyasar-key').value.trim();
+  await dbSet('settings', s);
+  localStorage.setItem('local_db_settings', JSON.stringify(s));
+  toast('✅ تم حفظ وتفعيل إعدادات الدفع بميسر بنجاح!');
+}
+
 </script>
 </body>
 </html>
+
 
 
 

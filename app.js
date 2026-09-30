@@ -1,4 +1,4 @@
-﻿// --- CRM TRACKING ---
+// --- CRM TRACKING ---
 async function trackVisitor() {
     if(sessionStorage.getItem('v_tracked')) return;
     try {
@@ -327,7 +327,7 @@ let storeSettings = {
     paylinkSecret: "3d338d24-08f6-3e0c-bd14-d7bf76261ba1",
     paylinkLink: "https://pylnk.me/l/QVC2xH",
     tamaraKey: "038760f6-0cb9-44fd-b61c-4615a63a9472",
-    activeGateway: "paylink",
+    activeGateway: "moyasar",
     testMode: false
 };
 
@@ -442,7 +442,18 @@ function applyStoreSettings() {
         } else if (storeSettings.activeGateway === 'tap') {
             noticeEl.innerHTML = `يتم معالجة وتأمين جميع العمليات البنكية بواسطة بوابة الدفع الرسمية <strong>تاب (Tap Payments)</strong>.`;
         } else {
-            noticeEl.innerHTML = `يتم معالجة وتأمين جميع العمليات البنكية بواسطة بوابة الدفع الرسمية <strong>ميسر (Moyasar)</strong>.`;
+            noticeEl.innerHTML = `يتم معالجة وتأمين جميع العمليات البنكية بواسطة بوابة الدفع الرسمية <strong>ميسر (Moyasar)</strong> المعتمدة من البنك المركزي السعودي (SAMA).`;
+        }
+    }
+
+    const submitBtn = document.getElementById("pay-submit-btn");
+    if (submitBtn) {
+        if (storeSettings.activeGateway === 'paylink') {
+            submitBtn.innerHTML = `<i class="fa-solid fa-lock"></i> إتمام الدفع عبر Paylink`;
+        } else if (storeSettings.activeGateway === 'tap') {
+            submitBtn.innerHTML = `<i class="fa-solid fa-lock"></i> إتمام الدفع عبر تاب (Tap)`;
+        } else {
+            submitBtn.innerHTML = `<i class="fa-solid fa-shield-halved"></i> إتمام الدفع بأمان عبر ميسر (مدى / فيزا / Apple Pay)`;
         }
     }
 }
@@ -461,7 +472,7 @@ async function checkMoyasarCallback() {
         const total = parseFloat(urlParams.get('total') || '0');
         const coupon = urlParams.get('coupon') || '';
 
-            const isMoyasarSuccess = status === 'captured';
+            const isMoyasarSuccess = status === 'captured' || status === 'paid';
             const isTapSuccess = urlParams.has('tap_id') || urlParams.has('charge_id') || (!status && urlParams.get('pay_success') === 'true');
 
             if (isMoyasarSuccess || isTapSuccess) {
@@ -599,9 +610,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!storeSettings.paylinkKey) {
         storeSettings.paylinkKey = "APP_ID_1784424601276";
         storeSettings.paylinkSecret = "3d338d24-08f6-3e0c-bd14-d7bf76261ba1";
-        storeSettings.activeGateway = "paylink";
-        storeSettings.testMode = false;
-        localStorage.setItem('local_db_settings', JSON.stringify(storeSettings));
+    }
+
+    // Load active settings from cloud or fallback to Moyasar
+    const cloudSettings = localStorage.getItem('belami_cloud_settings');
+    if (cloudSettings) {
+        try {
+            const parsed = JSON.parse(cloudSettings);
+            if (parsed.activeGateway) storeSettings.activeGateway = parsed.activeGateway;
+            if (parsed.moyasarKey) storeSettings.moyasarKey = parsed.moyasarKey;
+            if (parsed.testMode !== undefined) storeSettings.testMode = parsed.testMode;
+        } catch(e) {}
+    } else if (!storeSettings.activeGateway) {
+        storeSettings.activeGateway = "moyasar";
     }
 
     applyStoreSettings();
@@ -1365,30 +1386,40 @@ async function handleCheckoutSubmit(event) {
     }
 
     // Determine publishable key and test/live state based on settings
-    let pubKey = storeSettings.moyasarKey;
-    if (storeSettings.testMode) {
-        pubKey = "pk_test_h5N7sF1hTefjR4ePehQZc8VfF2G5K8sQ1jP6VfB2"; // Moyasar demo publishable key
+    let pubKey = storeSettings.moyasarKey ? storeSettings.moyasarKey.trim() : "";
+    if (storeSettings.testMode || !pubKey || !pubKey.startsWith("pk_live_")) {
+        pubKey = (pubKey && pubKey.startsWith("pk_test_")) ? pubKey : "pk_test_h5N7sF1hTefjR4ePehQZc8VfF2G5K8sQ1jP6VfB2";
     }
 
     // Initialize Moyasar Payment Form inside container '.mysr-form'
     const formContainer = document.querySelector(".mysr-form");
     if (formContainer) formContainer.innerHTML = "";
 
-    Moyasar.init({
-        element: '.mysr-form',
-        amount: Math.round(total * 100), // Halalas
-        currency: 'SAR',
-        description: `طلب رقم ${orderId} - متجر بيلامي`,
-        publishable_api_key: pubKey,
-        callback_url: callbackUrl,
-        methods: paymentMethod === 'card' ? ['creditcard'] : ['applepay'],
-        supported_networks: ['mada', 'visa', 'mastercard'],
-        apple_pay: {
-            country: 'SA',
-            label: 'Belami Chocolate',
-            validate_merchant_url: 'https://api.moyasar.com/v1/applepay/initiate'
+    try {
+        if (typeof Moyasar !== 'undefined') {
+            Moyasar.init({
+                element: '.mysr-form',
+                amount: Math.round(total * 100), // Halalas
+                currency: 'SAR',
+                description: `طلب رقم #${orderId} - متجر بيلامي للشوكولاتة`,
+                publishable_api_key: pubKey,
+                callback_url: callbackUrl,
+                methods: ['creditcard', 'applepay'],
+                supported_networks: ['mada', 'visa', 'mastercard'],
+                apple_pay: {
+                    country: 'SA',
+                    label: 'Belami Chocolate',
+                    validate_merchant_url: 'https://api.moyasar.com/v1/applepay/initiate'
+                }
+            });
+        } else {
+            console.error("Moyasar library is not available.");
+            showToast("تعذر تحميل نموذج ميسر، يرجى المحاولة مرة أخرى.");
         }
-    });
+    } catch(err) {
+        console.error("Moyasar.init error:", err);
+        showToast("خطأ في تشغيل بوابة ميسر: " + err.message);
+    }
 }
 
 function closeMoyasarModal() {
