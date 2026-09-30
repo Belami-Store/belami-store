@@ -1,4 +1,4 @@
-// Products Data (Default fallback)
+﻿// Products Data (Default fallback)
 const defaultProducts = [
     {
         id: 1,
@@ -3118,3 +3118,19 @@ function closePaylinkModal() {
         frame.src = "about:blank";
     }
 }
+
+// Convert Arabic numerals to English numerals automatically
+document.addEventListener('input', function(e) {
+    if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        const ar = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+        let val = e.target.value;
+        let original = val;
+        for(let i=0; i<10; i++) {
+            val = val.split(ar[i]).join(i.toString());
+        }
+        if(val !== original) {
+            e.target.value = val;
+            e.target.dispatchEvent(new Event('input', {bubbles: true})); // re-trigger for frameworks/handlers
+        }
+    }
+});
