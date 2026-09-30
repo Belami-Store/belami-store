@@ -214,8 +214,13 @@ document.addEventListener('input', function(e) {
       <div class="topbar-meta" id="page-date"></div>
     </div>
     <div class="topbar-actions">
+      <div id="session-timer-badge" style="display:flex;align-items:center;gap:10px;background:#fff3e0;padding:7px 14px;border-radius:10px;font-weight:700;font-size:0.85rem;color:#e65100;direction:ltr;">
+        <span id="session-countdown">08:00:00</span> <i class="fa-solid fa-hourglass-half"></i>
+        <button id="extend-session-btn" onclick="extendSession()" style="display:none;background:#e65100;color:#fff;border:none;padding:4px 8px;border-radius:6px;font-size:0.75rem;cursor:pointer;font-family:Tajawal;direction:rtl;">+ ساعتين</button>
+      </div>
       <div class="topbar-date" id="today-date"></div>
     </div>
+  </div>
   </div>
 
   <!-- HOME PAGE -->
@@ -386,21 +391,58 @@ const DB = `https://kvdb.io/buckets/${DB_BUCKET}/keys`;
 let allProducts = [], allOrders = [], allCustomers = {}, currentFilter = 'all', editingId = null;
 
 // ── AUTH ──
+let sessionTimerInterval;
+function startSessionTimer() {
+  if(sessionTimerInterval) clearInterval(sessionTimerInterval);
+  sessionTimerInterval = setInterval(updateSessionTimer, 1000);
+  updateSessionTimer();
+}
+function updateSessionTimer() {
+  const expiry = parseInt(localStorage.getItem('admin_session_expiry') || '0');
+  const diff = expiry - Date.now();
+  if (diff <= 0) {
+    clearInterval(sessionTimerInterval);
+    logout();
+    return;
+  }
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  const badge = document.getElementById('session-timer-badge');
+  document.getElementById('session-countdown').textContent = String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  if (h < 1) {
+    document.getElementById('extend-session-btn').style.display = 'inline-block';
+    badge.style.background = '#ffebee';
+    badge.style.color = '#c62828';
+  } else {
+    document.getElementById('extend-session-btn').style.display = 'none';
+    badge.style.background = '#fff3e0';
+    badge.style.color = '#e65100';
+  }
+}
+function extendSession() {
+  let expiry = parseInt(localStorage.getItem('admin_session_expiry') || '0');
+  expiry += 2 * 60 * 60 * 1000;
+  localStorage.setItem('admin_session_expiry', expiry.toString());
+  updateSessionTimer();
+  toast('✅ تم تمديد الجلسة بنجاح');
+}
 function login(){
   if(document.getElementById('pw').value === PASS){
-    sessionStorage.setItem('b_ok','1');
+    localStorage.setItem('admin_session_expiry', (Date.now() + 8 * 60 * 60 * 1000).toString());
     document.getElementById('login-screen').style.display='none';
     document.getElementById('sidebar').style.display='flex';
     document.getElementById('main').style.display='flex';
     document.getElementById('main').style.flexDirection='column';
     initApp();
+    startSessionTimer();
   } else {
     const e=document.getElementById('login-err'); e.style.display='block';
     document.getElementById('pw').value='';
     setTimeout(()=>e.style.display='none',3000);
   }
 }
-function logout(){ sessionStorage.removeItem('b_ok'); location.reload(); }
+function logout(){ localStorage.removeItem('admin_session_expiry'); location.reload(); }
 document.getElementById('pw').addEventListener('keydown',e=>e.key==='Enter'&&login());
 
 // ── DATE ──
@@ -713,12 +755,16 @@ document.getElementById('modal-overlay').addEventListener('click',function(e){ i
 
 // ── AUTO LOGIN ──
 window.addEventListener('DOMContentLoaded',()=>{
-  if(sessionStorage.getItem('b_ok')==='1'){
+  const expiry = parseInt(localStorage.getItem('admin_session_expiry') || '0');
+  if(expiry > Date.now()){
     document.getElementById('login-screen').style.display='none';
     document.getElementById('sidebar').style.display='flex';
     document.getElementById('main').style.display='flex';
     document.getElementById('main').style.flexDirection='column';
     initApp();
+    startSessionTimer();
+  } else {
+    localStorage.removeItem('admin_session_expiry');
   }
 });
 
@@ -862,6 +908,9 @@ initApp = async function(){
 </script>
 </body>
 </html>
+
+
+
 
 
 
