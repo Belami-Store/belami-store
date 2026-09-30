@@ -2289,3 +2289,6 @@ footer {
     transform: scale(1);
     opacity: 1;
 }
+
+.currency-icon { height: 16px; vertical-align: -2px; margin-right: 3px; margin-left: 3px; display: inline-block; opacity: 0.9; }
+
