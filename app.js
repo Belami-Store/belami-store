@@ -538,6 +538,22 @@ async function checkMoyasarCallback() {
 // Background cloud sync to keep local data updated without overwriting user edits
 async function syncCloudData() {
     try {
+        // Fetch Banner
+        const bannerData = await dbFetch('banner', null);
+        const topBanner = document.getElementById('top-announcement-bar');
+        if (topBanner) {
+            if (bannerData && bannerData.visible === false) {
+                topBanner.style.display = 'none';
+            } else {
+                topBanner.style.display = 'block';
+                const text = bannerData ? bannerData.text : '🔥 لا تفوتكم عروض ما قبل الإجازة السنوية (خصم 10%) &nbsp; | &nbsp; ⏳ آخر وقت للطلب 28 يوليو 🎁';
+                const span1 = document.getElementById('top-announcement-text1');
+                const span2 = document.getElementById('top-announcement-text2');
+                if (span1) span1.innerHTML = text;
+                if (span2) span2.innerHTML = text;
+            }
+        }
+
         const hasLocalProducts = localStorage.getItem('local_db_products');
         if (!hasLocalProducts) {
             const freshProducts = await dbFetch('products', null);
