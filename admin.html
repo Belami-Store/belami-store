@@ -811,7 +811,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('username').value = savedUser;
     document.getElementById('remember-user').checked = true;
   }
-  const expiry = parseInt(localStorage.getItem('admin_session_expiry')) || '0');
+  const expiry = parseInt(localStorage.getItem('admin_session_expiry') || '0');
   if(expiry > Date.now()){
     document.getElementById('login-screen').style.display='none';
     document.getElementById('sidebar').style.display='flex';
@@ -964,6 +964,7 @@ initApp = async function(){
 </script>
 </body>
 </html>
+
 
 
 
