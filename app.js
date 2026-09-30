@@ -347,41 +347,17 @@ function dbFetchLocal(key, defaultValue) {
 // Fetch key from kvdb.io with a small 3-second timeout to prevent UI hang
 async function dbFetch(key, defaultValue) {
     try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000);
-
-        const response = await fetch(`${DB_BASE_URL}/${key}?t=${Date.now()}`, {
-            method: 'GET',
-            headers: { 'Accept': 'application/json' },
-            signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-
-        if (response.status === 200) {
-            return await response.json();
-        } else if (response.status === 404) {
-            if (defaultValue !== null) {
-                dbSave(key, defaultValue);
-            }
-            return defaultValue;
-        }
-    } catch (e) {
-        console.error("DB Fetch Error for key " + key + ":", e);
+        const val = localStorage.getItem('belami_cloud_' + key);
+        if (val) return JSON.parse(val);
+    } catch (e) {}
+    if (defaultValue !== null) {
+        dbSave(key, defaultValue);
     }
-    if (defaultValue === null) return null;
-    return dbFetchLocal(key, defaultValue);
+    return defaultValue;
 }
 
-// Save key instantly to localStorage and update cloud in background (never blocks UI)
 function dbSave(key, value) {
-    localStorage.setItem('local_db_' + key, JSON.stringify(value));
-    fetch(`${DB_BASE_URL}/${key}?t=${Date.now()}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(value)
-    }).catch(e => {
-        console.error("Cloud sync save error for key " + key + ":", e);
-    });
+    localStorage.setItem('belami_cloud_' + key, JSON.stringify(value));
 }
 
 // Loud pleasant bell chime for new orders
@@ -3163,6 +3139,8 @@ document.addEventListener('input', function(e) {
         }
     }
 });
+
+
 
 
 
