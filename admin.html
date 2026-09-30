@@ -308,9 +308,25 @@ document.addEventListener('input', function(e) {
   </div>
 
   <!-- SETTINGS PAGE -->
-  <div class="page-content" id="page-settings">
+    <div class="page-content" id="page-settings">
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px">
-            <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-lock"></i> بيانات الدخول للحساب الحالي</div></div><div class="form-group"><label>اسم المستخدم</label><input type="text" id="setting-user" class="form-control" placeholder="admin"></div><div class="form-group"><label>كلمة المرور الجديدة (اختياري)</label><input type="password" id="setting-pass" class="form-control" placeholder="اتركه فارغاً لعدم التغيير"></div><button class="btn btn-outline" style="width:100%" onclick="saveCredentials()"><i class="fa-solid fa-save"></i> حفظ بيانات الدخول</button></div><div class="card">
+      
+      <!-- Current User Credentials -->
+      <div class="card">
+        <div class="card-header"><div class="card-title"><i class="fa-solid fa-lock"></i> بيانات الدخول للحساب الحالي</div></div>
+        <div class="form-group">
+          <label>اسم المستخدم</label>
+          <input type="text" id="setting-user" class="form-control" placeholder="admin">
+        </div>
+        <div class="form-group">
+          <label>كلمة المرور الجديدة (اختياري)</label>
+          <input type="password" id="setting-pass" class="form-control" placeholder="اتركه فارغاً لعدم التغيير">
+        </div>
+        <button class="btn btn-outline" style="width:100%" onclick="saveCredentials()"><i class="fa-solid fa-save"></i> حفظ بيانات الدخول</button>
+      </div>
+
+      <!-- User Management (Roles) -->
+      <div class="card">
         <div class="card-header"><div class="card-title"><i class="fa-solid fa-users-gear"></i> إدارة المستخدمين والصلاحيات</div></div>
         <div id="users-list-container" style="margin-bottom:15px; display:flex; flex-direction:column; gap:8px;"></div>
         <div style="background:#f9fafb; padding:15px; border-radius:10px; border:1px dashed #c9a96e;">
@@ -318,64 +334,56 @@ document.addEventListener('input', function(e) {
           <input type="text" id="new-user-name" placeholder="اسم المستخدم" style="margin-bottom:8px; width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; font-family:Tajawal;">
           <input type="text" id="new-user-pass" placeholder="كلمة المرور" style="margin-bottom:8px; width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; font-family:Tajawal;">
           <select id="new-user-role" style="margin-bottom:12px; width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; font-family:Tajawal;">
-            <option value="all">صلاحية كاملة (مدير عام)</option>
-            <option value="orders">الطلبات فقط (متابعة الطلبات)</option>
-            <option value="products">المنتجات فقط (إدارة المنتجات)</option>
+            <option value="all">مدير عام (كافة الصلاحيات)</option>
+            <option value="orders">موظف طلبات (متابعة الطلبات)</option>
+            <option value="products">موظف منتجات (إدارة المنتجات)</option>
           </select>
-          <button class="btn btn-outline" onclick="addUser()" style="width:100%;"><i class="fa-solid fa-user-plus"></i> إضافة المستخدم</button>
+          <button class="btn btn-outline" onclick="addUser()" style="width:100%;"><i class="fa-solid fa-user-plus"></i> إضافة مستخدم</button>
         </div>
       </div>
-        <div class="form-group">
-          <label>كلمة المرور الجديدة</label>
-          <input type="text" id="setting-pass" placeholder="اتركه فارغاً إذا لم ترد التغيير">
-        </div>
-        <button class="btn btn-primary" onclick="saveCredentials()"><i class="fa-solid fa-floppy-disk"></i> تحديث بيانات الدخول</button>
-      </div>
+
+      <!-- Banner Settings -->
       <div class="card">
         <div class="card-header"><div class="card-title"><i class="fa-solid fa-bullhorn"></i> الشريط الترويجي العلوي</div></div>
-        <div class="banner-preview-box" id="banner-preview">🔥 جاري التحميل...</div>
+        <div class="banner-preview-box" id="banner-preview">جاري التحميل...</div>
         <div class="form-group">
           <label>نص الشريط</label>
-          <input type="text" id="banner-text" placeholder="🔥 لا تفوتكم عروض ما قبل الإجازة!" oninput="updateBannerPreview()">
+          <input type="text" id="banner-text" placeholder="🔥 عروض مميزة..." oninput="updateBannerPreview()">
         </div>
         <div class="toggle-row">
           <label class="switch"><input type="checkbox" id="banner-visible" checked onchange="updateBannerPreview()"><span class="slider"></span></label>
-          <span style="font-weight:700;font-size:.9rem">إظهار الشريط للعملاء</span>
+          <span style="font-weight:700;font-size:.9rem">إظهار الشريط للزوار</span>
         </div>
-        <button class="btn btn-gold" onclick="saveBanner()"><i class="fa-solid fa-floppy-disk"></i> حفظ وتطبيق</button>
+        <button class="btn btn-gold" onclick="saveBanner()"><i class="fa-solid fa-floppy-disk"></i> حفظ الشريط</button>
       </div>
+
+      <!-- Shipping Settings -->
       <div class="card">
-        <div class="card-header"><div class="card-title"><i class="fa-solid fa-truck"></i> إعدادات الشحن</div></div>
+        <div class="card-header"><div class="card-title"><i class="fa-solid fa-truck"></i> إعدادات التوصيل</div></div>
         <div class="form-group">
-          <label>تكلفة الشحن (ر.س)</label>
+          <label>تكلفة التوصيل (ر.س)</label>
           <input type="number" id="shipping-cost" value="35" min="0">
         </div>
         <div class="toggle-row">
           <label class="switch"><input type="checkbox" id="pickup-enabled" checked><span class="slider"></span></label>
-          <span style="font-weight:700;font-size:.9rem">تفعيل الاستلام الذاتي</span>
+          <span style="font-weight:700;font-size:.9rem">تفعيل خيار "الاستلام من الفرع"</span>
         </div>
-        <button class="btn btn-primary" onclick="saveShipping()"><i class="fa-solid fa-floppy-disk"></i> حفظ الإعدادات</button>
+        <button class="btn btn-primary" onclick="saveShipping()"><i class="fa-solid fa-floppy-disk"></i> حفظ إعدادات التوصيل</button>
       </div>
+
+      <!-- Coupons Settings -->
       <div class="card">
-        <div class="card-header"><div class="card-title"><i class="fa-solid fa-tag"></i> كوبونات الخصم</div></div>
-        <div style="padding:10px;background:#f0f4f8;border-radius:10px;margin-bottom:14px">
-          <div style="font-weight:800;font-size:.9rem">BELAMI10 — خصم 10%</div>
-          <div style="font-size:.8rem;color:#666;margin-top:4px">للعملاء المميزين</div>
-        </div>
-        <div style="padding:10px;background:#f0f4f8;border-radius:10px;margin-bottom:14px">
-          <div style="font-weight:800;font-size:.9rem">BELAMI5 — خصم 5%</div>
-          <div style="font-size:.8rem;color:#666;margin-top:4px">عند تقييم المتجر</div>
-        </div>
+        <div class="card-header"><div class="card-title"><i class="fa-solid fa-ticket"></i> الكوبونات والعروض</div></div>
         <div class="toggle-row">
           <label class="switch"><input type="checkbox" id="coupon10-enabled" checked><span class="slider"></span></label>
-          <span style="font-weight:700;font-size:.9rem">تفعيل كوبون الخصم 10%</span>
+          <span style="font-weight:700;font-size:.9rem">تفعيل خصم 10% للطلبات فوق 200 ريال</span>
         </div>
-        <button class="btn btn-primary" onclick="saveCoupons()"><i class="fa-solid fa-floppy-disk"></i> حفظ</button>
+        <button class="btn btn-outline" style="width:100%" onclick="saveCoupons()"><i class="fa-solid fa-floppy-disk"></i> حفظ الكوبونات</button>
       </div>
+      
     </div>
   </div>
 
-  <!-- CRM PAGE -->
   <div class="page-content" id="page-crm">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;flex-wrap:wrap;">
       <div class="card">
@@ -1043,8 +1051,8 @@ function toggleDateCalendar() {
 renderSidebarDate();
 
 // ── DB ──
-async function dbGet(key){ try{ const r=await fetch(`${DB}/${key}?t=${Date.now()}`,{headers:{Accept:'application/json'}}); if(r.status===200)return await r.json(); }catch(e){} return null; }
-async function dbSet(key,val){ await fetch(`${DB}/${key}?t=${Date.now()}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(val)}); }
+async function dbGet(key){ try { const val = localStorage.getItem('belami_cloud_' + key); return val ? JSON.parse(val) : null; } catch(e) { return null; } }
+async function dbSet(key, val){ localStorage.setItem('belami_cloud_' + key, JSON.stringify(val)); }/${key}?t=${Date.now()}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(val)}); }
 
 
 async function initApp(){
@@ -1086,6 +1094,11 @@ initApp = async function(){
 </script>
 </body>
 </html>
+
+
+
+
+
 
 
 
