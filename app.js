@@ -344,20 +344,41 @@ function dbFetchLocal(key, defaultValue) {
     return defaultValue;
 }
 
-// Fetch key from kvdb.io with a small 3-second timeout to prevent UI hang
-async function dbFetch(key, defaultValue) {
+const FIREBASE_DB_URL = "https://belami-store-default-rtdb.firebaseio.com";
+
+// Fetch key from Firebase Realtime Database with fast fallback
+async function dbFetch(key, defaultValue = null) {
     try {
-        const val = localStorage.getItem('belami_cloud_' + key);
+        const res = await fetch(`${FIREBASE_DB_URL}/${key}.json?t=${Date.now()}`);
+        if (res.ok) {
+            const data = await res.json();
+            if (data !== null) {
+                localStorage.setItem('belami_cloud_' + key, JSON.stringify(data));
+                localStorage.setItem('local_db_' + key, JSON.stringify(data));
+                return data;
+            }
+        }
+    } catch (e) {
+        console.warn("Firebase fetch error for " + key, e);
+    }
+    try {
+        const val = localStorage.getItem('belami_cloud_' + key) || localStorage.getItem('local_db_' + key);
         if (val) return JSON.parse(val);
     } catch (e) {}
-    if (defaultValue !== null) {
-        dbSave(key, defaultValue);
-    }
     return defaultValue;
 }
 
 function dbSave(key, value) {
-    localStorage.setItem('belami_cloud_' + key, JSON.stringify(value));
+    try {
+        localStorage.setItem('belami_cloud_' + key, JSON.stringify(value));
+        localStorage.setItem('local_db_' + key, JSON.stringify(value));
+    } catch (e) {}
+
+    fetch(`${FIREBASE_DB_URL}/${key}.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(value)
+    }).catch(err => console.warn('Firebase save error for ' + key, err));
 }
 
 // Loud pleasant bell chime for new orders
@@ -552,15 +573,23 @@ async function checkMoyasarCallback() {
 // Background cloud sync to keep local data updated without overwriting user edits
 async function syncCloudData() {
     try {
-        // Fetch Banner
-        const bannerData = await dbFetch('banner', null);        const topBanner = document.getElementById('top-announcement-bar');
+        // Fetch fresh Products from Firebase
+        const freshProducts = await dbFetch('products', null);
+        if (freshProducts && Array.isArray(freshProducts) && freshProducts.length > 0) {
+            products = freshProducts;
+            localStorage.setItem('local_db_products', JSON.stringify(products));
+            renderProducts();
+        }
+
+        // Fetch Banner from Firebase
+        const bannerData = await dbFetch('banner', null);
+        const topBanner = document.getElementById('top-announcement-bar');
         if (topBanner) {
             if (bannerData && (bannerData.visible === false || bannerData.visible === 'false')) {
                 topBanner.style.display = 'none';
-
-            } else {
+            } else if (bannerData && (bannerData.visible === true || bannerData.visible === 'true')) {
                 topBanner.style.display = 'block';
-                const text = bannerData ? bannerData.text : '🔥 لا تفوتكم عروض ما قبل الإجازة السنوية (خصم 10%) &nbsp; | &nbsp; ⏳ آخر وقت للطلب 28 يوليو 🎁';
+                const text = bannerData.text || '🔥 عروض بيلامي الخاصة | خصم 10% بمناسبة الإجازة 🎁';
                 const span1 = document.getElementById('top-announcement-text1');
                 const span2 = document.getElementById('top-announcement-text2');
                 if (span1) span1.innerHTML = text;
@@ -568,27 +597,15 @@ async function syncCloudData() {
             }
         }
 
-        const hasLocalProducts = localStorage.getItem('local_db_products');
-        if (!hasLocalProducts) {
-            const freshProducts = await dbFetch('products', null);
-            if (freshProducts && freshProducts.length > 0) {
-                products = freshProducts;
-                localStorage.setItem('local_db_products', JSON.stringify(products));
-                renderProducts();
-            }
-        }
-
-        const hasLocalSettings = localStorage.getItem('local_db_settings');
-        if (!hasLocalSettings) {
-            const freshSettings = await dbFetch('settings', null);
-            if (freshSettings) {
-                storeSettings = freshSettings;
-                localStorage.setItem('local_db_settings', JSON.stringify(storeSettings));
-                applyStoreSettings();
-            }
+        // Fetch fresh Settings from Firebase
+        const freshSettings = await dbFetch('settings', null);
+        if (freshSettings) {
+            storeSettings = { ...storeSettings, ...freshSettings };
+            localStorage.setItem('local_db_settings', JSON.stringify(storeSettings));
+            applyStoreSettings();
         }
     } catch (e) {
-        console.warn("Background cloud sync skipped:", e);
+        console.warn("Firebase sync error:", e);
     }
 }
 
@@ -1996,6 +2013,15 @@ function saveOrderToAdmin(orderId, name, phone, city, address, paymentMethod, to
     };
     orders.push(newOrder);
     localStorage.setItem('belami_orders', JSON.stringify(orders));
+
+    // Save order to Firebase Realtime Database
+    try {
+        fetch(`${FIREBASE_DB_URL}/orders/${orderId}.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newOrder)
+        }).catch(err => console.warn('Firebase order save error:', err));
+    } catch(e) {}
 
     // 2. Add or update customer in CRM (Phone index)
     const customers = JSON.parse(localStorage.getItem('belami_customers') || '{}');

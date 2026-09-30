@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
@@ -1127,21 +1127,76 @@ function toggleDateCalendar() {
 }
 renderSidebarDate();
 
-// ── DB ──
-async function dbGet(key){ try { const val = localStorage.getItem('belami_cloud_' + key); return val ? JSON.parse(val) : null; } catch(e) { return null; } }
-async function dbSet(key, val){ localStorage.setItem('belami_cloud_' + key, JSON.stringify(val)); }
+// ── DB (Firebase Realtime Database) ──
+const FIREBASE_DB_URL = "https://belami-store-default-rtdb.firebaseio.com";
+
+async function dbGet(key){
+  try {
+    const res = await fetch(`${FIREBASE_DB_URL}/${key}.json?t=${Date.now()}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data !== null) {
+        localStorage.setItem('belami_cloud_' + key, JSON.stringify(data));
+        return data;
+      }
+    }
+  } catch(e) {
+    console.warn('Firebase dbGet error for ' + key, e);
+  }
+  try {
+    const val = localStorage.getItem('belami_cloud_' + key);
+    return val ? JSON.parse(val) : null;
+  } catch(e) {
+    return null;
+  }
+}
+
+async function dbSet(key, val){
+  try {
+    localStorage.setItem('belami_cloud_' + key, JSON.stringify(val));
+  } catch(e){}
+  try {
+    await fetch(`${FIREBASE_DB_URL}/${key}.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(val)
+    });
+  } catch(e) {
+    console.error('Firebase dbSet error for ' + key, e);
+  }
+}
 
 
 async function initApp(){
   await Promise.all([loadProducts(), loadBanner(), loadSettings()]);
-  loadLocalData();
+  await loadLocalData();
   applyPermissions();
   renderHome();
 }
 
-function loadLocalData(){
+async function loadLocalData(){
   allOrders = JSON.parse(localStorage.getItem('belami_orders')||'[]');
   allCustomers = JSON.parse(localStorage.getItem('belami_customers')||'{}');
+
+  try {
+    const res = await fetch(`${FIREBASE_DB_URL}/orders.json?t=${Date.now()}`);
+    if (res.ok) {
+      const fbOrders = await res.json();
+      if (fbOrders) {
+        const orderList = Array.isArray(fbOrders) ? fbOrders.filter(Boolean) : Object.values(fbOrders);
+        if (orderList.length > 0) {
+          const map = new Map();
+          [...orderList, ...allOrders].forEach(o => { if (o && o.orderId) map.set(o.orderId, o); });
+          allOrders = Array.from(map.values());
+          localStorage.setItem('belami_orders', JSON.stringify(allOrders));
+          renderOrders();
+          renderHome();
+        }
+      }
+    }
+  } catch(e) {
+    console.warn('Firebase orders sync error:', e);
+  }
 }
 
 // ── NAVIGATION ──
