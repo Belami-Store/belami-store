@@ -716,6 +716,16 @@ async function saveProduct(){
   toast(editingId?'✅ تم تحديث المنتج!':'✅ تم إضافة المنتج!');
 }
 
+let pendingConfirmCallback = null;
+function showConfirmModal(msg, callback) {
+  document.getElementById('confirm-msg').textContent = msg;
+  pendingConfirmCallback = callback;
+  document.getElementById('confirm-overlay').style.display = 'flex';
+}
+function closeConfirmModal() {
+  document.getElementById('confirm-overlay').style.display = 'none';
+  pendingConfirmCallback = null;
+}
 function deleteProduct(id){
   const p=allProducts.find(x=>x.id===id); if(!p)return;
   showConfirmModal('هل أنت متأكد من حذف المنتج: ' + p.name + ' نهائياً؟', async () => {
@@ -1076,6 +1086,7 @@ initApp = async function(){
 </script>
 </body>
 </html>
+
 
 
 
