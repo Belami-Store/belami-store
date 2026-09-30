@@ -206,8 +206,19 @@ document.addEventListener('input', function(e) {
     <div class="nav-item" onclick="showPage('customers')"><i class="fa-solid fa-users"></i> العملاء</div>
     <div class="nav-item" onclick="showPage('settings')"><i class="fa-solid fa-sliders"></i> إعدادات المتجر</div>
   </nav>
-  <div class="sidebar-footer">
-    <button class="btn-logout" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> خروج</button>
+    <div class="sidebar-footer" style="display:flex; flex-direction:column; gap:12px;">
+    <div id="sidebar-date-btn" onclick="toggleDateCalendar()" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:10px; color:#e8eef3; font-size:0.8rem; text-align:center; cursor:pointer; transition:0.2s; user-select:none;" title="اضغط للتبديل بين الهجري والميلادي">
+      <i class="fa-solid fa-calendar-days" style="color:#c9a96e; margin-left:4px;"></i> <span id="sidebar-date-text" style="font-weight:700; font-family: 'Tajawal', sans-serif;"></span>
+    </div>
+    
+    <div id="session-timer-badge" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:10px; color:#e8eef3; font-size:0.8rem; display:flex; flex-direction:column; align-items:center; gap:8px;">
+      <div style="display:flex; align-items:center; gap:8px; font-weight:700; direction:ltr;">
+        <span id="session-countdown" style="letter-spacing:1px; font-size:0.95rem;">08:00:00</span> <i class="fa-solid fa-hourglass-half" style="color:#c9a96e;"></i>
+      </div>
+      <button id="extend-session-btn" onclick="extendSession()" style="display:none; width:100%; background:#c9a96e; color:#1a1a2e; border:none; padding:6px; border-radius:6px; font-size:0.75rem; cursor:pointer; font-family:'Tajawal', sans-serif; font-weight:700;">+ تمديد ساعتين</button>
+    </div>
+
+    <button class="btn-logout" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</button>
   </div>
 </div>
 
@@ -218,13 +229,8 @@ document.addEventListener('input', function(e) {
       <div class="topbar-title" id="page-title">الرئيسية</div>
       <div class="topbar-meta" id="page-date"></div>
     </div>
-    <div class="topbar-actions">
-      <div id="session-timer-badge" style="display:flex;align-items:center;gap:10px;background:#fff3e0;padding:7px 14px;border-radius:10px;font-weight:700;font-size:0.85rem;color:#e65100;direction:ltr;">
-        <span id="session-countdown">08:00:00</span> <i class="fa-solid fa-hourglass-half"></i>
-        <button id="extend-session-btn" onclick="extendSession()" style="display:none;background:#e65100;color:#fff;border:none;padding:4px 8px;border-radius:6px;font-size:0.75rem;cursor:pointer;font-family:Tajawal;direction:rtl;">+ ساعتين</button>
-      </div>
-      <div class="topbar-date" id="today-date"></div>
-    </div>
+    <div class="topbar-actions"></div>
+  </div>
   </div>
   </div>
 
@@ -427,14 +433,18 @@ function updateSessionTimer() {
   const s = Math.floor((diff % 60000) / 1000);
   const badge = document.getElementById('session-timer-badge');
   document.getElementById('session-countdown').textContent = String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
-  if (h < 1) {
-    document.getElementById('extend-session-btn').style.display = 'inline-block';
-    badge.style.background = '#ffebee';
-    badge.style.color = '#c62828';
+    if (h < 1) {
+    document.getElementById('extend-session-btn').style.display = 'block';
+    badge.style.background = 'rgba(229,62,62,0.15)';
+    badge.style.color = '#fc8181';
+    badge.style.borderColor = 'rgba(229,62,62,0.3)';
+    if(badge.querySelector('i')) badge.querySelector('i').style.color = '#fc8181';
   } else {
     document.getElementById('extend-session-btn').style.display = 'none';
-    badge.style.background = '#fff3e0';
-    badge.style.color = '#e65100';
+    badge.style.background = 'rgba(255,255,255,0.05)';
+    badge.style.color = '#e8eef3';
+    badge.style.borderColor = 'rgba(255,255,255,0.1)';
+    if(badge.querySelector('i')) badge.querySelector('i').style.color = '#c9a96e';
   }
 }
 function extendSession() {
@@ -496,9 +506,26 @@ function logout(){ localStorage.removeItem('admin_session_expiry'); location.rel
 document.getElementById('pw').addEventListener('keydown',e=>e.key==='Enter'&&login());
 
 // ── DATE ──
-const now = new Date();
-document.getElementById('today-date').textContent = now.toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-document.getElementById('page-date').textContent = 'آخر تحديث: ' + now.toLocaleTimeString('ar-SA');
+let isHijri = true;
+function renderSidebarDate() {
+  const now = new Date();
+  const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  const d = document.getElementById('sidebar-date-text');
+  if(d) {
+    if(isHijri) {
+      d.textContent = now.toLocaleDateString('ar-SA-u-nu-latn', opts);
+    } else {
+      d.textContent = now.toLocaleDateString('ar-EG-u-nu-latn', opts);
+    }
+  }
+  const pd = document.getElementById('page-date');
+  if(pd) pd.textContent = 'آخر تحديث: ' + now.toLocaleTimeString('ar-SA-u-nu-latn');
+}
+function toggleDateCalendar() {
+  isHijri = !isHijri;
+  renderSidebarDate();
+}
+renderSidebarDate();
 
 // ── DB ──
 async function dbGet(key){ try{ const r=await fetch(`${DB}/${key}`,{headers:{Accept:'application/json'}}); if(r.status===200)return await r.json(); }catch(e){} return null; }
@@ -965,6 +992,11 @@ initApp = async function(){
 </script>
 </body>
 </html>
+
+
+
+
+
 
 
 
