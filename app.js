@@ -825,24 +825,9 @@ function navigateTo(view) {
     } else if (view === 'success') {
         successView.classList.add("active");
     } else if (view === 'admin') {
-        if (adminView) {
-            // 🔒 PASSWORD PROTECTION - Always ask for password on each visit
-            const entered = prompt('🔐 لوحة تحكم بيلامي\n\nأدخل كلمة المرور للدخول:');
-            if (entered === null) {
-                navigateTo('home');
-                return;
-            }
-            // Admin password
-            const ADMIN_PASSWORD = 'Belami@2026';
-            if (entered !== ADMIN_PASSWORD) {
-                alert('❌ كلمة المرور غير صحيحة! الدخول مرفوض.');
-                navigateTo('home');
-                return;
-            }
-            adminView.classList.add("active");
-            adminView.style.display = "block";
-            renderAdminDashboard();
-        }
+        // Redirect completely to the new standalone admin dashboard
+        window.location.href = 'admin.html';
+        return;
     }
 
     // Scroll to top
