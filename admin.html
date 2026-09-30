@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم بيلامي 🍫</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Tajawal', sans-serif; background: #f5f5f0; color: #1a1a1a; }
+
+        /* ── LOGIN SCREEN ── */
+        #login-screen {
+            display: flex; align-items: center; justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a1a 0%, #3d2b1f 100%);
+        }
+        .login-card {
+            background: #fff; border-radius: 20px; padding: 48px 40px;
+            width: 100%; max-width: 400px; box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+            text-align: center;
+        }
+        .login-logo { font-size: 3rem; margin-bottom: 10px; }
+        .login-card h2 { font-size: 1.6rem; font-weight: 900; color: #1a1a1a; margin-bottom: 6px; }
+        .login-card p { color: #888; font-size: 0.95rem; margin-bottom: 30px; }
+        .login-card input {
+            width: 100%; padding: 14px 18px; border: 2px solid #e0e0e0;
+            border-radius: 10px; font-size: 1rem; font-family: 'Tajawal', sans-serif;
+            margin-bottom: 14px; text-align: center; letter-spacing: 2px;
+            transition: border-color 0.2s;
+        }
+        .login-card input:focus { outline: none; border-color: #c9a96e; }
+        .btn-login {
+            width: 100%; padding: 14px; background: linear-gradient(135deg, #c9a96e, #a07840);
+            color: white; border: none; border-radius: 10px; font-size: 1.1rem;
+            font-family: 'Tajawal', sans-serif; font-weight: 700; cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn-login:hover { opacity: 0.9; }
+        .login-error {
+            color: #e53e3e; font-size: 0.9rem; margin-top: 10px;
+            display: none; font-weight: 600;
+        }
+
+        /* ── DASHBOARD ── */
+        #dashboard { display: none; }
+        .topbar {
+            background: linear-gradient(135deg, #1a1a1a, #3d2b1f);
+            color: white; padding: 16px 24px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .topbar-logo { display: flex; align-items: center; gap: 10px; }
+        .topbar-logo span { font-size: 1.4rem; font-weight: 900; color: #c9a96e; }
+        .topbar-logo small { font-size: 0.8rem; color: #aaa; display: block; }
+        .btn-logout {
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+            color: white; padding: 8px 18px; border-radius: 8px;
+            cursor: pointer; font-family: 'Tajawal', sans-serif; font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        .btn-logout:hover { background: rgba(255,255,255,0.2); }
+
+        .dashboard-content { max-width: 1100px; margin: 0 auto; padding: 30px 20px; }
+
+        /* ── SECTION CARDS ── */
+        .section-card {
+            background: white; border-radius: 16px; padding: 28px;
+            margin-bottom: 28px; box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        }
+        .section-title {
+            font-size: 1.25rem; font-weight: 800; color: #1a1a1a;
+            margin-bottom: 20px; padding-bottom: 14px;
+            border-bottom: 2px solid #f0e6d3;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .section-title i { color: #c9a96e; }
+
+        /* ── BANNER CONTROL ── */
+        .banner-preview {
+            background: #1a1a1a; color: #c9a96e; padding: 10px 20px;
+            border-radius: 8px; text-align: center; font-size: 0.9rem;
+            margin-bottom: 16px; overflow: hidden;
+        }
+        .form-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+        .form-group { flex: 1; min-width: 200px; }
+        .form-group label {
+            display: block; font-size: 0.85rem; font-weight: 700;
+            color: #555; margin-bottom: 6px;
+        }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%; padding: 11px 14px; border: 2px solid #e0e0e0;
+            border-radius: 10px; font-family: 'Tajawal', sans-serif;
+            font-size: 0.95rem; transition: border-color 0.2s;
+        }
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none; border-color: #c9a96e;
+        }
+
+        /* ── BUTTONS ── */
+        .btn {
+            padding: 11px 22px; border: none; border-radius: 10px;
+            font-family: 'Tajawal', sans-serif; font-weight: 700; font-size: 0.95rem;
+            cursor: pointer; transition: all 0.2s; white-space: nowrap;
+        }
+        .btn-gold { background: linear-gradient(135deg, #c9a96e, #a07840); color: white; }
+        .btn-gold:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-danger { background: #fff0f0; color: #e53e3e; border: 1px solid #fcc; }
+        .btn-danger:hover { background: #ffe0e0; }
+        .btn-sm { padding: 7px 14px; font-size: 0.85rem; border-radius: 8px; }
+
+        /* ── PRODUCTS TABLE ── */
+        .products-table { width: 100%; border-collapse: collapse; }
+        .products-table th {
+            background: #f8f4ef; padding: 12px 16px; text-align: right;
+            font-size: 0.85rem; color: #777; font-weight: 700;
+            border-bottom: 2px solid #f0e6d3;
+        }
+        .products-table td {
+            padding: 14px 16px; border-bottom: 1px solid #f5f0ea;
+            font-size: 0.9rem; vertical-align: middle;
+        }
+        .products-table tr:last-child td { border-bottom: none; }
+        .products-table tr:hover td { background: #fdf9f4; }
+        .product-img-thumb {
+            width: 52px; height: 52px; object-fit: cover;
+            border-radius: 10px; border: 2px solid #f0e6d3;
+        }
+        .product-name-cell { font-weight: 700; color: #1a1a1a; }
+        .product-price-cell { color: #c9a96e; font-weight: 800; }
+        .badge {
+            display: inline-block; padding: 3px 10px; border-radius: 20px;
+            font-size: 0.75rem; font-weight: 700;
+        }
+        .badge-new { background: #e8f5e9; color: #2e7d32; }
+        .badge-sale { background: #fff3e0; color: #e65100; }
+
+        /* ── EDIT MODAL ── */
+        #edit-modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.6); z-index: 1000;
+            align-items: center; justify-content: center;
+        }
+        #edit-modal-overlay.active { display: flex; }
+        .edit-modal {
+            background: white; border-radius: 20px; padding: 32px;
+            width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+        }
+        .edit-modal h3 { font-size: 1.2rem; font-weight: 800; margin-bottom: 20px; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+
+        /* ── TOAST ── */
+        #toast {
+            position: fixed; bottom: 30px; right: 30px;
+            background: #1a1a1a; color: #c9a96e; padding: 14px 24px;
+            border-radius: 12px; font-weight: 700; font-size: 0.95rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            transform: translateY(100px); opacity: 0;
+            transition: all 0.3s ease; z-index: 9999;
+        }
+        #toast.show { transform: translateY(0); opacity: 1; }
+
+        .toggle-switch {
+            display: flex; align-items: center; gap: 12px; margin-top: 12px;
+        }
+        .switch {
+            position: relative; display: inline-block; width: 48px; height: 26px;
+        }
+        .switch input { display: none; }
+        .slider {
+            position: absolute; inset: 0; background: #ccc;
+            border-radius: 26px; cursor: pointer; transition: 0.3s;
+        }
+        .slider:before {
+            content: ""; position: absolute;
+            width: 20px; height: 20px; border-radius: 50%;
+            background: white; left: 3px; top: 3px; transition: 0.3s;
+        }
+        input:checked + .slider { background: #c9a96e; }
+        input:checked + .slider:before { transform: translateX(22px); }
+    </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════
+     LOGIN SCREEN
+════════════════════════════════ -->
+<div id="login-screen">
+    <div class="login-card">
+        <div class="login-logo">🍫</div>
+        <h2>بيلامي شوكليت</h2>
+        <p>لوحة تحكم التاجر - دخول خاص</p>
+        <input type="password" id="pw-input" placeholder="كلمة المرور" 
+               onkeydown="if(event.key==='Enter') doLogin()">
+        <button class="btn-login" onclick="doLogin()">
+            <i class="fa-solid fa-right-to-bracket"></i> دخول
+        </button>
+        <div class="login-error" id="login-error">❌ كلمة المرور غير صحيحة</div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════
+     DASHBOARD
+════════════════════════════════ -->
+<div id="dashboard">
+    <div class="topbar">
+        <div class="topbar-logo">
+            <i class="fa-solid fa-store" style="color:#c9a96e; font-size:1.4rem;"></i>
+            <div>
+                <span>لوحة تحكم بيلامي</span>
+                <small>إدارة المتجر والمنتجات</small>
+            </div>
+        </div>
+        <button class="btn-logout" onclick="doLogout()">
+            <i class="fa-solid fa-right-from-bracket"></i> خروج
+        </button>
+    </div>
+
+    <div class="dashboard-content">
+
+        <!-- ═══ BANNER CONTROL ═══ -->
+        <div class="section-card">
+            <div class="section-title">
+                <i class="fa-solid fa-bullhorn"></i>
+                الشريط الترويجي العلوي
+            </div>
+            <div class="banner-preview" id="banner-preview">
+                🔥 جاري التحميل...
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>نص الشريط</label>
+                    <input type="text" id="banner-text" placeholder="مثال: 🔥 لا تفوتكم عروض ما قبل الإجازة!">
+                </div>
+            </div>
+            <div class="toggle-switch" style="margin-top:14px;">
+                <label class="switch">
+                    <input type="checkbox" id="banner-visible" checked onchange="updateBannerPreview()">
+                    <span class="slider"></span>
+                </label>
+                <span style="font-weight:700; font-size:0.95rem;">إظهار الشريط للعملاء</span>
+            </div>
+            <div style="margin-top:18px;">
+                <button class="btn btn-gold" onclick="saveBanner()">
+                    <i class="fa-solid fa-floppy-disk"></i> حفظ وتطبيق على الموقع
+                </button>
+            </div>
+        </div>
+
+        <!-- ═══ PRODUCTS ═══ -->
+        <div class="section-card">
+            <div class="section-title">
+                <i class="fa-solid fa-box-open"></i>
+                إدارة المنتجات
+                <span style="margin-right:auto; font-size:0.85rem; color:#888; font-weight:500;">
+                    <span id="products-count">-</span> منتج
+                </span>
+            </div>
+
+            <div id="products-loading" style="text-align:center; padding:40px; color:#888;">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem;"></i>
+                <p style="margin-top:10px;">جاري تحميل المنتجات...</p>
+            </div>
+
+            <div id="products-table-wrapper" style="display:none; overflow-x:auto;">
+                <table class="products-table">
+                    <thead>
+                        <tr>
+                            <th>الصورة</th>
+                            <th>اسم المنتج</th>
+                            <th>السعر</th>
+                            <th>السعر قبل الخصم</th>
+                            <th>الفئة</th>
+                            <th>الحالة</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="products-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div><!-- /dashboard-content -->
+</div><!-- /dashboard -->
+
+<!-- ═══ EDIT MODAL ═══ -->
+<div id="edit-modal-overlay">
+    <div class="edit-modal">
+        <h3><i class="fa-solid fa-pen-to-square" style="color:#c9a96e;"></i> تعديل المنتج</h3>
+        <input type="hidden" id="edit-product-id">
+        <div class="form-group" style="margin-bottom:14px;">
+            <label>اسم المنتج</label>
+            <input type="text" id="edit-name" placeholder="اسم المنتج">
+        </div>
+        <div class="form-row" style="margin-bottom:14px;">
+            <div class="form-group">
+                <label>السعر (ر.س)</label>
+                <input type="number" id="edit-price" placeholder="250">
+            </div>
+            <div class="form-group">
+                <label>السعر قبل الخصم (ر.س) - اختياري</label>
+                <input type="number" id="edit-original-price" placeholder="300">
+            </div>
+        </div>
+        <div class="form-group" style="margin-bottom:14px;">
+            <label>مسار الصورة (مثال: assets/chocolate_box.jpg)</label>
+            <input type="text" id="edit-image" placeholder="assets/product.jpg">
+        </div>
+        <div class="form-row" style="margin-bottom:14px;">
+            <div class="form-group">
+                <label>الفئة</label>
+                <select id="edit-category">
+                    <option value="boxes">بوكسات</option>
+                    <option value="trays">صواني</option>
+                    <option value="gifts">هدايا</option>
+                    <option value="hospitality">بكجات ضيافة</option>
+                    <option value="corporate">هدايا الشركات</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row" style="margin-bottom:14px;">
+            <div class="form-group">
+                <label class="switch" style="margin-left:8px;">
+                    <input type="checkbox" id="edit-is-new">
+                    <span class="slider"></span>
+                </label>
+                منتج جديد 🆕
+            </div>
+            <div class="form-group">
+                <label class="switch" style="margin-left:8px;">
+                    <input type="checkbox" id="edit-is-sale">
+                    <span class="slider"></span>
+                </label>
+                عرض مميز 🔥
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-danger" onclick="closeEditModal()">إلغاء</button>
+            <button class="btn btn-gold" onclick="saveProductEdit()">
+                <i class="fa-solid fa-floppy-disk"></i> حفظ التعديلات
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════
+const ADMIN_PASSWORD = 'Belami@2026';
+const DB_BUCKET = 'belami_sa_85e6d66f';
+const DB_BASE = `https://kvdb.io/buckets/${DB_BUCKET}/keys`;
+
+let allProducts = [];
+
+// ══════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════
+function doLogin() {
+    const pw = document.getElementById('pw-input').value;
+    if (pw === ADMIN_PASSWORD) {
+        sessionStorage.setItem('belami_admin_ok', '1');
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        initDashboard();
+    } else {
+        const err = document.getElementById('login-error');
+        err.style.display = 'block';
+        document.getElementById('pw-input').value = '';
+        document.getElementById('pw-input').focus();
+        setTimeout(() => err.style.display = 'none', 3000);
+    }
+}
+
+function doLogout() {
+    sessionStorage.removeItem('belami_admin_ok');
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('pw-input').value = '';
+}
+
+// Auto-login if session active
+window.addEventListener('DOMContentLoaded', () => {
+    if (sessionStorage.getItem('belami_admin_ok') === '1') {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        initDashboard();
+    }
+});
+
+// ══════════════════════════════════════════════
+// DB HELPERS
+// ══════════════════════════════════════════════
+async function dbGet(key) {
+    try {
+        const r = await fetch(`${DB_BASE}/${key}`, { headers: { Accept: 'application/json' } });
+        if (r.status === 200) return await r.json();
+    } catch(e) {}
+    return null;
+}
+
+async function dbSet(key, value) {
+    await fetch(`${DB_BASE}/${key}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(value)
+    });
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+async function initDashboard() {
+    await loadBanner();
+    await loadProducts();
+}
+
+// ══════════════════════════════════════════════
+// BANNER
+// ══════════════════════════════════════════════
+async function loadBanner() {
+    const data = await dbGet('banner');
+    const text = data?.text || '🔥 لا تفوتكم عروض ما قبل الإجازة | 🚚 شحن سريع 28 ريال';
+    const visible = data?.visible !== false;
+    document.getElementById('banner-text').value = text;
+    document.getElementById('banner-visible').checked = visible;
+    document.getElementById('banner-preview').textContent = visible ? text : '🔕 الشريط مخفي حالياً';
+}
+
+function updateBannerPreview() {
+    const text = document.getElementById('banner-text').value;
+    const visible = document.getElementById('banner-visible').checked;
+    document.getElementById('banner-preview').textContent = visible ? (text || '...') : '🔕 الشريط مخفي حالياً';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const bannerInput = document.getElementById('banner-text');
+    if (bannerInput) bannerInput.addEventListener('input', updateBannerPreview);
+});
+
+async function saveBanner() {
+    const text = document.getElementById('banner-text').value.trim();
+    const visible = document.getElementById('banner-visible').checked;
+    await dbSet('banner', { text, visible });
+    showToast('✅ تم حفظ الشريط وسيظهر على الموقع فوراً!');
+}
+
+// ══════════════════════════════════════════════
+// PRODUCTS
+// ══════════════════════════════════════════════
+async function loadProducts() {
+    document.getElementById('products-loading').style.display = 'block';
+    document.getElementById('products-table-wrapper').style.display = 'none';
+
+    const stored = await dbGet('products');
+    if (stored && Array.isArray(stored) && stored.length > 0) {
+        allProducts = stored;
+    } else {
+        showToast('⚠️ لم يتم العثور على منتجات في السحابة، جارٍ تحميل الافتراضية');
+        allProducts = [];
+    }
+
+    renderProductsTable();
+    document.getElementById('products-loading').style.display = 'none';
+    document.getElementById('products-table-wrapper').style.display = 'block';
+    document.getElementById('products-count').textContent = allProducts.length;
+}
+
+const CATEGORY_NAMES = {
+    boxes: 'بوكسات', trays: 'صواني', gifts: 'هدايا',
+    hospitality: 'بكجات ضيافة', corporate: 'هدايا الشركات'
+};
+
+function renderProductsTable() {
+    const tbody = document.getElementById('products-tbody');
+    if (!allProducts.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px; color:#aaa;">لا توجد منتجات</td></tr>';
+        return;
+    }
+    tbody.innerHTML = allProducts.map(p => `
+        <tr>
+            <td>
+                <img src="${p.image}" alt="${p.name}" class="product-img-thumb"
+                     onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'52\' height=\'52\'><rect width=\'52\' height=\'52\' fill=\'%23f0e6d3\'/><text x=\'50%25\' y=\'55%25\' text-anchor=\'middle\' fill=\'%23c9a96e\' font-size=\'20\'>🍫</text></svg>'">
+            </td>
+            <td class="product-name-cell">${p.name}</td>
+            <td class="product-price-cell">${p.price} ر.س</td>
+            <td style="color:#aaa;">${p.originalPrice ? p.originalPrice + ' ر.س' : '—'}</td>
+            <td>${CATEGORY_NAMES[p.category] || p.category}</td>
+            <td>
+                ${p.isNew ? '<span class="badge badge-new">جديد</span>' : ''}
+                ${p.isSale ? '<span class="badge badge-sale">عرض</span>' : ''}
+            </td>
+            <td>
+                <button class="btn btn-gold btn-sm" onclick="openEditModal(${p.id})" style="margin-left:6px;">
+                    <i class="fa-solid fa-pen"></i> تعديل
+                </button>
+                <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// ── EDIT MODAL ──
+function openEditModal(id) {
+    const p = allProducts.find(x => x.id === id);
+    if (!p) return;
+    document.getElementById('edit-product-id').value = id;
+    document.getElementById('edit-name').value = p.name;
+    document.getElementById('edit-price').value = p.price;
+    document.getElementById('edit-original-price').value = p.originalPrice || '';
+    document.getElementById('edit-image').value = p.image;
+    document.getElementById('edit-category').value = p.category;
+    document.getElementById('edit-is-new').checked = !!p.isNew;
+    document.getElementById('edit-is-sale').checked = !!p.isSale;
+    document.getElementById('edit-modal-overlay').classList.add('active');
+}
+
+function closeEditModal() {
+    document.getElementById('edit-modal-overlay').classList.remove('active');
+}
+
+async function saveProductEdit() {
+    const id = parseInt(document.getElementById('edit-product-id').value);
+    const idx = allProducts.findIndex(x => x.id === id);
+    if (idx === -1) return;
+
+    allProducts[idx] = {
+        ...allProducts[idx],
+        name: document.getElementById('edit-name').value.trim(),
+        price: parseFloat(document.getElementById('edit-price').value) || allProducts[idx].price,
+        originalPrice: parseFloat(document.getElementById('edit-original-price').value) || null,
+        image: document.getElementById('edit-image').value.trim(),
+        category: document.getElementById('edit-category').value,
+        isNew: document.getElementById('edit-is-new').checked,
+        isSale: document.getElementById('edit-is-sale').checked,
+    };
+
+    await dbSet('products', allProducts);
+    renderProductsTable();
+    closeEditModal();
+    showToast('✅ تم تحديث المنتج وسيظهر على الموقع فوراً!');
+}
+
+async function deleteProduct(id) {
+    const p = allProducts.find(x => x.id === id);
+    if (!p) return;
+    if (!confirm(`❗ هل تريد حذف المنتج "${p.name}" نهائياً؟`)) return;
+    allProducts = allProducts.filter(x => x.id !== id);
+    await dbSet('products', allProducts);
+    renderProductsTable();
+    document.getElementById('products-count').textContent = allProducts.length;
+    showToast('🗑️ تم حذف المنتج بنجاح');
+}
+
+// ══════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// Close modal on outside click
+document.getElementById('edit-modal-overlay').addEventListener('click', function(e) {
+    if (e.target === this) closeEditModal();
+});
+</script>
+</body>
+</html>

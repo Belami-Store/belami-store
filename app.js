@@ -810,22 +810,18 @@ function navigateTo(view) {
         successView.classList.add("active");
     } else if (view === 'admin') {
         if (adminView) {
-            // 🔒 PASSWORD PROTECTION - Check if already authenticated this session
-            const isAdminAuth = sessionStorage.getItem('belami_admin_auth') === 'true';
-            if (!isAdminAuth) {
-                const entered = prompt('🔐 لوحة تحكم بيلامي\n\nأدخل كلمة المرور للدخول:');
-                if (entered === null) {
-                    navigateTo('home');
-                    return;
-                }
-                // Admin password (change this to your preferred password)
-                const ADMIN_PASSWORD = 'Belami@2026';
-                if (entered !== ADMIN_PASSWORD) {
-                    alert('❌ كلمة المرور غير صحيحة! الدخول مرفوض.');
-                    navigateTo('home');
-                    return;
-                }
-                sessionStorage.setItem('belami_admin_auth', 'true');
+            // 🔒 PASSWORD PROTECTION - Always ask for password on each visit
+            const entered = prompt('🔐 لوحة تحكم بيلامي\n\nأدخل كلمة المرور للدخول:');
+            if (entered === null) {
+                navigateTo('home');
+                return;
+            }
+            // Admin password
+            const ADMIN_PASSWORD = 'Belami@2026';
+            if (entered !== ADMIN_PASSWORD) {
+                alert('❌ كلمة المرور غير صحيحة! الدخول مرفوض.');
+                navigateTo('home');
+                return;
             }
             adminView.classList.add("active");
             adminView.style.display = "block";
