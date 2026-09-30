@@ -1004,6 +1004,38 @@ function toggleNotif(){
 // Show notif button and start monitoring when logged in
 
 
+function logout(){ localStorage.removeItem('admin_session_expiry'); location.reload(); }
+
+let pwElem = document.getElementById('pw');
+if(pwElem) pwElem.addEventListener('keydown',e=>e.key==='Enter'&&login());
+
+// ── DATE ──
+let isHijri = true;
+function renderSidebarDate() {
+  const now = new Date();
+  const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  const d = document.getElementById('sidebar-date-text');
+  if(d) {
+    if(isHijri) {
+      d.textContent = now.toLocaleDateString('ar-SA-u-nu-latn', opts);
+    } else {
+      d.textContent = now.toLocaleDateString('ar-EG-u-nu-latn', opts);
+    }
+  }
+  const pd = document.getElementById('page-date');
+  if(pd) pd.textContent = 'آخر تحديث: ' + now.toLocaleTimeString('ar-SA-u-nu-latn');
+}
+function toggleDateCalendar() {
+  isHijri = !isHijri;
+  renderSidebarDate();
+}
+renderSidebarDate();
+
+// ── DB ──
+async function dbGet(key){ try{ const r=await fetch(`${DB}/${key}?t=${Date.now()}`,{headers:{Accept:'application/json'}}); if(r.status===200)return await r.json(); }catch(e){} return null; }
+async function dbSet(key,val){ await fetch(`${DB}/${key}?t=${Date.now()}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(val)}); }
+
+
 async function initApp(){
   await Promise.all([loadProducts(), loadBanner(), loadSettings()]);
   loadLocalData();
@@ -1043,6 +1075,7 @@ initApp = async function(){
 </script>
 </body>
 </html>
+
 
 
 
