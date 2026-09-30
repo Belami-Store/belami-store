@@ -1056,7 +1056,7 @@ renderSidebarDate();
 
 // ── DB ──
 async function dbGet(key){ try { const val = localStorage.getItem('belami_cloud_' + key); return val ? JSON.parse(val) : null; } catch(e) { return null; } }
-async function dbSet(key, val){ localStorage.setItem('belami_cloud_' + key, JSON.stringify(val)); }/${key}?t=${Date.now()}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(val)}); }
+async function dbSet(key, val){ localStorage.setItem('belami_cloud_' + key, JSON.stringify(val)); }
 
 
 async function initApp(){
@@ -1098,6 +1098,8 @@ initApp = async function(){
 </script>
 </body>
 </html>
+
+
 
 
 
