@@ -1,4 +1,31 @@
-﻿// Products Data (Default fallback)
+﻿// --- CRM TRACKING ---
+async function trackVisitor() {
+    if(sessionStorage.getItem('v_tracked')) return;
+    try {
+        const res = await fetch('https://ipapi.co/json/');
+        const data = await res.json();
+        let visitors = await dbFetch('crm_visitors');
+        if(!visitors || !Array.isArray(visitors)) visitors = [];
+        visitors.push({
+            ip: data.ip || 'Unknown',
+            city: data.city || 'Unknown',
+            country: data.country_name || 'Unknown',
+            time: new Date().toLocaleString('en-GB')
+        });
+        if(visitors.length > 200) visitors = visitors.slice(-200);
+        await dbSave('crm_visitors', visitors);
+        sessionStorage.setItem('v_tracked', '1');
+    } catch(e) { console.log(e); }
+}
+async function trackProductView(id) {
+    try {
+        let views = await dbFetch('crm_views');
+        if(!views) views = {};
+        views[id] = (views[id] || 0) + 1;
+        await dbSave('crm_views', views);
+    } catch(e){}
+}
+// Products Data (Default fallback)
 const defaultProducts = [
     {
         id: 1,
@@ -579,6 +606,7 @@ async function syncCloudData() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+    trackVisitor();
     // Load immediately from local cache (offline-first, instant render)
     storeSettings = dbFetchLocal('settings', storeSettings);
     products = dbFetchLocal('products', defaultProducts);
@@ -1404,6 +1432,7 @@ let currentModalQty = 1;
 
 // Open product details modal
 function openProductModal(productId) {
+    trackProductView(productId);
     const product = products.find(p => p.id === productId);
     if (!product) return;
 
@@ -3134,3 +3163,5 @@ document.addEventListener('input', function(e) {
         }
     }
 });
+
+

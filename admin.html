@@ -205,6 +205,7 @@ document.addEventListener('input', function(e) {
     <div class="nav-item" onclick="showPage('products')"><i class="fa-solid fa-box-open"></i> المنتجات</div>
     <div class="nav-item" onclick="showPage('customers')"><i class="fa-solid fa-users"></i> العملاء</div>
     <div class="nav-item" onclick="showPage('settings')"><i class="fa-solid fa-sliders"></i> إعدادات المتجر</div>
+    <div class="nav-item" onclick="showPage('crm')"><i class="fa-solid fa-chart-line"></i> الإحصائيات و CRM</div>
   </nav>
     <div class="sidebar-footer" style="display:flex; flex-direction:column; gap:12px;">
     <div id="sidebar-date-btn" onclick="toggleDateCalendar()" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:10px; color:#e8eef3; font-size:0.8rem; text-align:center; cursor:pointer; transition:0.2s; user-select:none;" title="اضغط للتبديل بين الهجري والميلادي">
@@ -315,12 +316,21 @@ document.addEventListener('input', function(e) {
   <!-- SETTINGS PAGE -->
   <div class="page-content" id="page-settings">
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px">
-      <div class="card">
-        <div class="card-header"><div class="card-title"><i class="fa-solid fa-lock"></i> بيانات الدخول</div></div>
-        <div class="form-group">
-          <label>اسم المستخدم</label>
-          <input type="text" id="setting-user" value="admin">
+            <div class="card">
+        <div class="card-header"><div class="card-title"><i class="fa-solid fa-users-gear"></i> إدارة المستخدمين والصلاحيات</div></div>
+        <div id="users-list-container" style="margin-bottom:15px; display:flex; flex-direction:column; gap:8px;"></div>
+        <div style="background:#f9fafb; padding:15px; border-radius:10px; border:1px dashed #c9a96e;">
+          <h4 style="margin:0 0 10px 0; font-size:0.9rem; color:#1a1a2e;">إضافة مستخدم جديد</h4>
+          <input type="text" id="new-user-name" placeholder="اسم المستخدم" style="margin-bottom:8px; width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; font-family:Tajawal;">
+          <input type="text" id="new-user-pass" placeholder="كلمة المرور" style="margin-bottom:8px; width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; font-family:Tajawal;">
+          <select id="new-user-role" style="margin-bottom:12px; width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; font-family:Tajawal;">
+            <option value="all">صلاحية كاملة (مدير عام)</option>
+            <option value="orders">الطلبات فقط (متابعة الطلبات)</option>
+            <option value="products">المنتجات فقط (إدارة المنتجات)</option>
+          </select>
+          <button class="btn btn-outline" onclick="addUser()" style="width:100%;"><i class="fa-solid fa-user-plus"></i> إضافة المستخدم</button>
         </div>
+      </div>
         <div class="form-group">
           <label>كلمة المرور الجديدة</label>
           <input type="text" id="setting-pass" placeholder="اتركه فارغاً إذا لم ترد التغيير">
@@ -367,6 +377,30 @@ document.addEventListener('input', function(e) {
           <span style="font-weight:700;font-size:.9rem">تفعيل كوبون الخصم 10%</span>
         </div>
         <button class="btn btn-primary" onclick="saveCoupons()"><i class="fa-solid fa-floppy-disk"></i> حفظ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CRM PAGE -->
+  <div class="page-content" id="page-crm">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;flex-wrap:wrap;">
+      <div class="card">
+        <div class="card-header"><div class="card-title"><i class="fa-solid fa-eye"></i> المنتجات الأكثر مشاهدة</div></div>
+        <div style="overflow-x:auto;">
+          <table class="orders-table">
+            <thead><tr><th>المنتج</th><th>المشاهدات</th></tr></thead>
+            <tbody id="crm-views-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title"><i class="fa-solid fa-earth-americas"></i> الزوار الفعليين (مباشر)</div></div>
+        <div style="overflow-x:auto;">
+          <table class="orders-table">
+            <thead><tr><th>IP</th><th>المدينة</th><th>الدولة</th><th>التاريخ</th></tr></thead>
+            <tbody id="crm-visitors-tbody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -459,21 +493,22 @@ async function login(){
   const prevHtml = btn.innerHTML;
   btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري التحقق...';
   try {
-    let s = await dbGet('settings');
-    if(!s) s = {};
-    const validUser = s.adminUser || 'admin';
-    const validPass = s.adminPass || 'Belami@2026';
+    let s = await dbGet('settings') || {};
+    let users = s.users || [{u:'admin', p:'Belami@2026', role:'all'}];
     
     const u = document.getElementById('username').value.trim();
     const p = document.getElementById('pw').value;
     
-    if(u === validUser && p === validPass){
+    const matchedUser = users.find(x => x.u === u && x.p === p);
+    
+    if(matchedUser){
       if(document.getElementById('remember-user').checked) {
         localStorage.setItem('saved_admin_user', u);
       } else {
         localStorage.removeItem('saved_admin_user');
       }
       localStorage.setItem('admin_session_expiry', (Date.now() + 8 * 60 * 60 * 1000).toString());
+      localStorage.setItem('admin_role', matchedUser.role);
       document.getElementById('login-screen').style.display='none';
       document.getElementById('sidebar').style.display='flex';
       document.getElementById('main').style.display='flex';
@@ -485,17 +520,70 @@ async function login(){
       document.getElementById('pw').value='';
       setTimeout(()=>e.style.display='none',3000);
     }
-  } catch(e) {
-    console.error(e);
-  }
+  } catch(e) { console.error(e); }
   btn.innerHTML = prevHtml;
 }
-async function saveCredentials(){
-  const u = document.getElementById('setting-user').value.trim();
-  const p = document.getElementById('setting-pass').value;
-  if(!u) return toast('اسم المستخدم مطلوب');
-  let s = await dbGet('settings');
-  if(!s) s = {};
+
+async function renderUsersList() {
+  let s = await dbGet('settings') || {};
+  let users = s.users || [{u:'admin', p:'Belami@2026', role:'all'}];
+  const roleNames = {all:'مدير عام', orders:'الطلبات فقط', products:'المنتجات فقط'};
+  document.getElementById('users-list-container').innerHTML = users.map((x, i) => 
+    <div style="display:flex; justify-content:space-between; align-items:center; background:#f0f4f8; padding:10px; border-radius:8px;">
+      <div>
+        <div style="font-weight:700; color:#1a7fbd;"> + x.u + </div>
+        <div style="font-size:0.75rem; color:#666;"> + roleNames[x.role] + </div>
+      </div>
+       + (i === 0 ? '<span style="font-size:0.7rem; background:#c9a96e; color:#fff; padding:2px 6px; border-radius:10px;">الرئيسي</span>' : <button onclick="deleteUser(+i+)" style="background:none; border:none; color:#e53e3e; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>) + 
+    </div>
+  ).join('');
+}
+
+async function addUser() {
+  const u = document.getElementById('new-user-name').value.trim();
+  const p = document.getElementById('new-user-pass').value.trim();
+  const role = document.getElementById('new-user-role').value;
+  if(!u || !p) return toast('الاسم وكلمة المرور مطلوبة');
+  let s = await dbGet('settings') || {};
+  let users = s.users || [{u:'admin', p:'Belami@2026', role:'all'}];
+  if(users.find(x => x.u === u)) return toast('اسم المستخدم موجود مسبقاً');
+  users.push({u, p, role});
+  s.users = users;
+  await dbSet('settings', s);
+  document.getElementById('new-user-name').value = '';
+  document.getElementById('new-user-pass').value = '';
+  renderUsersList();
+  toast('تم إضافة المستخدم بنجاح');
+}
+
+async function deleteUser(index) {
+  if(!confirm('هل تريد حذف هذا المستخدم؟')) return;
+  let s = await dbGet('settings') || {};
+  let users = s.users || [{u:'admin', p:'Belami@2026', role:'all'}];
+  users.splice(index, 1);
+  s.users = users;
+  await dbSet('settings', s);
+  renderUsersList();
+  toast('تم حذف المستخدم');
+}
+
+function applyPermissions() {
+  const role = localStorage.getItem('admin_role') || 'all';
+  const navs = document.querySelectorAll('.nav-item');
+  navs.forEach(n => n.style.display = 'block'); // reset
+  
+  if(role === 'orders') {
+    navs.forEach(n => {
+      if(!n.textContent.includes('الطلبات') && !n.textContent.includes('الرئيسية')) n.style.display = 'none';
+    });
+    if(!document.getElementById('page-orders').classList.contains('active')) showPage('orders');
+  } else if(role === 'products') {
+    navs.forEach(n => {
+      if(!n.textContent.includes('المنتجات') && !n.textContent.includes('الرئيسية')) n.style.display = 'none';
+    });
+    if(!document.getElementById('page-products').classList.contains('active')) showPage('products');
+  }
+};
   s.adminUser = u;
   if(p) s.adminPass = p;
   await dbSet('settings', s);
@@ -535,6 +623,7 @@ async function dbSet(key,val){ await fetch(`${DB}/${key}`,{method:'POST',headers
 async function initApp(){
   await Promise.all([loadProducts(), loadBanner(), loadSettings()]);
   loadLocalData();
+  applyPermissions();
   renderHome();
 }
 
@@ -549,10 +638,11 @@ function showPage(page){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
   event.currentTarget.classList.add('active');
-  const titles={home:'الرئيسية',orders:'الطلبات',products:'المنتجات',customers:'العملاء',settings:'إعدادات المتجر'};
+  const titles={home:'الرئيسية',orders:'الطلبات',products:'المنتجات',customers:'العملاء',settings:'إعدادات المتجر',crm:'الإحصائيات و CRM'};
   document.getElementById('page-title').textContent=titles[page];
   if(page==='orders') renderOrders();
   if(page==='products') renderProducts();
+  if(page==='crm') renderCRM();
   if(page==='customers') renderCustomers();
   if(page==='settings') loadBanner();
 }
@@ -801,6 +891,34 @@ async function saveBanner(){
 }
 
 // ── SETTINGS ──
+async function renderCRM() {
+  // Load Visitors
+  let visitors = await dbGet('crm_visitors') || [];
+  visitors.reverse(); // newest first
+  document.getElementById('crm-visitors-tbody').innerHTML = visitors.length ? visitors.map(v=>
+    <tr>
+      <td style="font-family:monospace;font-size:0.85rem;color:#1a7fbd;"></td>
+      <td style="font-weight:700;"></td>
+      <td></td>
+      <td style="font-size:0.75rem;color:#8fa8c0;"></td>
+    </tr>
+  ).join('') : '<tr><td colspan="4" style="text-align:center;padding:20px;color:#8fa8c0;">لا يوجد زوار حالياً</td></tr>';
+
+  // Load Views
+  let views = await dbGet('crm_views') || {};
+  let viewArray = Object.keys(views).map(id => {
+    let p = allProducts.find(x => x.id == id);
+    return { name: p ? p.name : 'منتج محذوف ('+id+')', count: views[id] };
+  }).sort((a,b) => b.count - a.count);
+  
+  document.getElementById('crm-views-tbody').innerHTML = viewArray.length ? viewArray.map(v=>
+    <tr>
+      <td style="font-weight:700;"></td>
+      <td style="color:#c9a96e;font-weight:900;"> 👀</td>
+    </tr>
+  ).join('') : '<tr><td colspan="2" style="text-align:center;padding:20px;color:#8fa8c0;">لا توجد مشاهدات</td></tr>';
+}
+
 async function loadSettings(){
   const s=await dbGet('settings');
   if(s){
@@ -808,6 +926,7 @@ async function loadSettings(){
     document.getElementById('setting-user').value=s.adminUser||'admin';
     document.getElementById('pickup-enabled').checked=s.pickupEnabled!==false;
     document.getElementById('coupon10-enabled').checked=s.coupon10Enabled!==false;
+    renderUsersList();
   }
 }
 
@@ -992,6 +1111,12 @@ initApp = async function(){
 </script>
 </body>
 </html>
+
+
+
+
+
+
 
 
 
