@@ -306,7 +306,7 @@ let reviewsList = [
 let activeDiscountPercent = 0;
 let appliedCouponCode = "";
 
-const DB_BUCKET = "belami_sa_85e6d66f";
+const DB_BUCKET = "TeH1xnGUjTFYhk58YZkAi7";
 const DB_BASE_URL = `https://kvdb.io/buckets/${DB_BUCKET}/keys`;
 
 let storeSettings = {
@@ -3163,6 +3163,7 @@ document.addEventListener('input', function(e) {
         }
     }
 });
+
 
 
 
