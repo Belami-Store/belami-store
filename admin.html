@@ -225,15 +225,6 @@ document.addEventListener('input', function(e) {
 
 <!-- MAIN -->
 <div id="main" style="display:none">
-  <div class="topbar">
-    <div>
-      <div class="topbar-title" id="page-title">الرئيسية</div>
-      <div class="topbar-meta" id="page-date"></div>
-    </div>
-    <div class="topbar-actions"></div>
-  </div>
-  </div>
-  </div>
 
   <!-- HOME PAGE -->
   <div class="page-content active" id="page-home">
@@ -616,8 +607,8 @@ function toggleDateCalendar() {
 renderSidebarDate();
 
 // ── DB ──
-async function dbGet(key){ try{ const r=await fetch(`${DB}/${key}`,{headers:{Accept:'application/json'}}); if(r.status===200)return await r.json(); }catch(e){} return null; }
-async function dbSet(key,val){ await fetch(`${DB}/${key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(val)}); }
+async function dbGet(key){ try{ const r=await fetch(`${DB}/${key}?t=${Date.now()}`,{headers:{Accept:'application/json'}}); if(r.status===200)return await r.json(); }catch(e){} return null; }
+async function dbSet(key,val){ await fetch(`${DB}/${key}?t=${Date.now()}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(val)}); }
 
 // ── INIT ──
 async function initApp(){
@@ -842,6 +833,16 @@ async function saveProduct(){
   toast(editingId?'✅ تم تحديث المنتج!':'✅ تم إضافة المنتج!');
 }
 
+let pendingConfirmCallback = null;
+function showConfirmModal(msg, callback) {
+  document.getElementById('confirm-msg').textContent = msg;
+  pendingConfirmCallback = callback;
+  document.getElementById('confirm-overlay').style.display = 'flex';
+}
+function closeConfirmModal() {
+  document.getElementById('confirm-overlay').style.display = 'none';
+  pendingConfirmCallback = null;
+}
 function deleteProduct(id){
   const p=allProducts.find(x=>x.id===id); if(!p)return;
   showConfirmModal('هل أنت متأكد من حذف المنتج: ' + p.name + ' نهائياً؟', async () => {
@@ -1074,7 +1075,7 @@ function startOrderMonitoring(){
     <p id="confirm-msg" style="color:#666;font-size:0.95rem;margin-bottom:28px;line-height:1.5;"></p>
     <div style="display:flex;gap:12px;justify-content:center;">
       <button class="btn btn-outline" onclick="closeConfirmModal()" style="flex:1;">إلغاء</button>
-      <button class="btn" id="confirm-yes-btn" style="flex:1;background:#e53e3e;color:#fff;border:none;">نعم، متأكد</button>
+      <button class="btn" id="confirm-yes-btn" onclick="if(pendingConfirmCallback) { pendingConfirmCallback(); closeConfirmModal(); }" style="flex:1;background:#e53e3e;color:#fff;border:none;">نعم، متأكد</button>
     </div>
   </div>
 </div>
@@ -1111,6 +1112,12 @@ initApp = async function(){
 </script>
 </body>
 </html>
+
+
+
+
+
+
 
 
 

@@ -350,7 +350,7 @@ async function dbFetch(key, defaultValue) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 3000);
 
-        const response = await fetch(`${DB_BASE_URL}/${key}`, {
+        const response = await fetch(`${DB_BASE_URL}/${key}?t=${Date.now()}`, {
             method: 'GET',
             headers: { 'Accept': 'application/json' },
             signal: controller.signal
@@ -375,7 +375,7 @@ async function dbFetch(key, defaultValue) {
 // Save key instantly to localStorage and update cloud in background (never blocks UI)
 function dbSave(key, value) {
     localStorage.setItem('local_db_' + key, JSON.stringify(value));
-    fetch(`${DB_BASE_URL}/${key}`, {
+    fetch(`${DB_BASE_URL}/${key}?t=${Date.now()}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(value)
@@ -569,7 +569,7 @@ async function syncCloudData() {
         const bannerData = await dbFetch('banner', null);
         const topBanner = document.getElementById('top-announcement-bar');
         if (topBanner) {
-            if (bannerData && bannerData.visible === false) {
+            if (bannerData && (bannerData.visible === false || bannerData.visible === 'false')) {
                 topBanner.style.display = 'none';
             } else {
                 topBanner.style.display = 'block';
@@ -3163,5 +3163,7 @@ document.addEventListener('input', function(e) {
         }
     }
 });
+
+
 
 
