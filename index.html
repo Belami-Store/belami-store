@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta name="google-site-verification" content="google6c1551627c036fb0.html" />
@@ -358,7 +358,7 @@
                                             <input type="radio" name="shipping_type" id="ship-delivery" value="delivery" checked onchange="updateShippingMethod(35)" style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--primary);">
                                             <div>
                                                 <div style="font-weight: bold; color: var(--text-dark); font-size: 0.9rem;">توصيل لجميع أحياء الرياض</div>
-                                                <div style="font-size: 0.8rem; color: var(--text-gold);">35.00 ر.س</div>
+                                                <div style="font-size: 0.8rem; color: var(--text-gold);">35.00 <img src="assets/sar.png" class="currency-icon" alt="SAR"></div>
                                             </div>
                                         </label>
                                         <label class="delivery-method-label" style="flex: 1; border: 1px solid rgba(184, 144, 71, 0.2); padding: 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; background: #fff; transition: all 0.2s;">
@@ -438,19 +438,19 @@
                             <table class="summary-table">
                                 <tr class="summary-row">
                                     <td class="summary-cell name-cell">المجموع الفرعي</td>
-                                    <td class="summary-cell price-cell" id="checkout-subtotal">0.00 ر.س</td>
+                                    <td class="summary-cell price-cell" id="checkout-subtotal">0.00 <img src="assets/sar.png" class="currency-icon" alt="SAR"></td>
                                 </tr>
                                 <tr class="summary-row" id="coupon-discount-row" style="display: none;">
                                     <td class="summary-cell name-cell" style="color: #25d366;">خصم الكوبون (5%)</td>
-                                    <td class="summary-cell price-cell" style="color: #25d366;" id="checkout-discount">-0.00 ر.س</td>
+                                    <td class="summary-cell price-cell" style="color: #25d366;" id="checkout-discount">-0.00 <img src="assets/sar.png" class="currency-icon" alt="SAR"></td>
                                 </tr>
                                 <tr class="summary-row">
                                     <td class="summary-cell name-cell">التوصيل والشحن</td>
-                                    <td class="summary-cell price-cell" id="checkout-shipping">25.00 ر.س</td>
+                                    <td class="summary-cell price-cell" id="checkout-shipping">25.00 <img src="assets/sar.png" class="currency-icon" alt="SAR"></td>
                                 </tr>
                                 <tr class="summary-row total-row">
                                     <td class="summary-cell name-cell">المجموع الكلي</td>
-                                    <td class="summary-cell price-cell" id="checkout-total">0.00 ر.س</td>
+                                    <td class="summary-cell price-cell" id="checkout-total">0.00 <img src="assets/sar.png" class="currency-icon" alt="SAR"></td>
                                 </tr>
                             </table>
 
@@ -498,7 +498,7 @@
                             </div>
                             <div class="receipt-line total-line">
                                 <span class="receipt-label">المجموع الكلي:</span>
-                                <span class="receipt-value" id="receipt-total">0.00 ر.س</span>
+                                <span class="receipt-value" id="receipt-total">0.00 <img src="assets/sar.png" class="currency-icon" alt="SAR"></span>
                             </div>
                         </div>
 
@@ -580,7 +580,7 @@
                             <div class="checkout-card" style="margin-bottom: 0; padding: 20px; text-align: center; border: 1px solid rgba(184,144,71,0.15);">
                                 <div style="font-size: 2.2rem; color: var(--text-gold); margin-bottom: 8px;"><i class="fa-solid fa-sack-dollar"></i></div>
                                 <h4 style="color: var(--text-muted); font-size: 0.85rem; font-weight: 500; margin-bottom: 5px;">إجمالي الإيرادات والمبيعات</h4>
-                                <div id="stat-revenue" style="font-size: 1.8rem; font-weight: 800; color: var(--text-dark);">0.00 ر.س</div>
+                                <div id="stat-revenue" style="font-size: 1.8rem; font-weight: 800; color: var(--text-dark);">0.00 <img src="assets/sar.png" class="currency-icon" alt="SAR"></div>
                             </div>
                             <div class="checkout-card" style="margin-bottom: 0; padding: 20px; text-align: center; border: 1px solid rgba(184,144,71,0.15);">
                                 <div style="font-size: 2.2rem; color: #007aff; margin-bottom: 8px;"><i class="fa-solid fa-chart-line"></i></div>
@@ -805,7 +805,7 @@
                                     <i class="fa-solid fa-truck"></i> إعدادات التوصيل والشحن
                                 </h3>
                                 <div class="form-group" style="margin-bottom: 20px;">
-                                    <label class="form-label" for="settings-shipping-cost">تكلفة التوصيل لجميع الأحياء (ر.س) *</label>
+                                    <label class="form-label" for="settings-shipping-cost">تكلفة التوصيل لجميع الأحياء (<img src="assets/sar.png" class="currency-icon" alt="SAR">) *</label>
                                     <input type="number" id="settings-shipping-cost" class="form-control" placeholder="35">
                                 </div>
                                 <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-bottom: 20px;">
@@ -836,7 +836,7 @@
                     </div>
                     <div class="form-row" style="display: flex; gap: 15px;">
                         <div class="form-group" style="flex: 1;">
-                            <label class="form-label" for="prod-price">السعر (ر.س) *</label>
+                            <label class="form-label" for="prod-price">السعر (<img src="assets/sar.png" class="currency-icon" alt="SAR">) *</label>
                             <input type="number" id="prod-price" class="form-control" required placeholder="99">
                         </div>
                         <div class="form-group" style="flex: 1;">
@@ -930,7 +930,7 @@
         <div class="cart-footer">
             <div class="cart-summary-line">
                 <span class="cart-summary-label">المجموع الإجمالي:</span>
-                <span class="cart-summary-value" id="cart-total-value">0.00 ر.س</span>
+                <span class="cart-summary-value" id="cart-total-value">0.00 <img src="assets/sar.png" class="currency-icon" alt="SAR"></span>
             </div>
             <button class="btn cart-checkout-btn" id="cart-checkout-button" onclick="goToCheckout()">
                 <i class="fa-solid fa-lock"></i> إتمام عملية الشراء
@@ -1040,7 +1040,7 @@
                         </a>
                     </div>
                     
-                    <div class="modal-product-price" id="modal-product-price">0.00 <span>ر.س</span></div>
+                    <div class="modal-product-price" id="modal-product-price">0.00 <span><img src="assets/sar.png" class="currency-icon" alt="SAR"></span></div>
                     
                     <!-- Customization Fields -->
                     <div class="modal-customizations">
@@ -1057,8 +1057,8 @@
                             <label class="form-label" for="modal-print-message" style="font-weight: 700; color: var(--text-dark);"><i class="fa-solid fa-print"></i> عبارة طباعة على الشوكولاتة (اختياري)</label>
                             <select id="modal-print-message" onchange="updateModalPrice()" class="form-control" style="border: 1px solid var(--glass-border); padding: 8px 12px; border-radius: 8px; width: 100%; background: #fff; color: var(--text-dark); cursor: pointer;">
                                 <option value="">بدون عبارة مطبوعة</option>
-                                <option value="الحمدلله على السلامة">الحمدلله على السلامة (+5 ر.س)</option>
-                                <option value="ألف مبروك">ألف مبروك (+5 ر.س)</option>
+                                <option value="الحمدلله على السلامة">الحمدلله على السلامة (+5 <img src="assets/sar.png" class="currency-icon" alt="SAR">)</option>
+                                <option value="ألف مبروك">ألف مبروك (+5 <img src="assets/sar.png" class="currency-icon" alt="SAR">)</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -1234,3 +1234,5 @@
     <script src="app.js?v=2"></script>
 </body>
 </html>
+
+
