@@ -1231,11 +1231,25 @@ function startContinuousOrderAlarm(order) {
   // Play chime immediately
   playOrderBell();
   
-  // Keep repeating every 2.8 seconds until accepted
+  // Play 2 more times (total 3 rings)
+  let rings = 1;
   if (orderAlarmInterval) clearInterval(orderAlarmInterval);
   orderAlarmInterval = setInterval(() => {
+    rings++;
     playOrderBell();
-  }, 2800);
+    if (rings >= 3) {
+        clearInterval(orderAlarmInterval);
+        orderAlarmInterval = null;
+    }
+  }, 3000);
+
+  // Show normal toast instead of blocking modal
+  toast('طلب جديد: #' + order.orderId);
+  showOrderNotif(order);
+
+  // Send desktop/mobile system notification
+  sendSystemNotification(order);
+}, 2800);
 
   // Show full-screen POS receipt modal
   showPosOrderModal(order);
@@ -1812,6 +1826,34 @@ window.updateOrderStatus = async function(orderId, newStatus) {
         }
     } catch(e) {
         console.error("Error updating status:", e);
+    }
+};
+</script>
+<script>
+// System Initialization
+window.unlockAndStart = function() {
+    try {
+        unlockMobileAudio(); // Unlock audio context
+        
+        // Play a very subtle click sound to confirm
+        if(audioCtx) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+        }
+    } catch(e) {}
+    
+    const overlay = document.getElementById('audio-unlock-overlay');
+    if(overlay) {
+        overlay.style.opacity = '0';
+        overlay.style.transition = 'opacity 0.4s ease';
+        setTimeout(() => overlay.remove(), 400);
     }
 };
 </script>
