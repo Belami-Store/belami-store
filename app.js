@@ -1330,36 +1330,10 @@ async function handleCheckoutSubmit(event) {
         let methodTitle = "تحويل بنكي مباشر (بانتظار الإيصال)";
         if (paymentMethod === 'tamara') methodTitle = "تقسيط تمارا (بانتظار الرابط)";
 
-        // Save order to belami_orders array
-        const orders = JSON.parse(localStorage.getItem('belami_orders') || '[]');
-        const newOrder = {
-            orderId,
-            name,
-            phone, email, city, address,
-            paymentMethod: methodTitle,
-            total,
-            items: orderItems,
-            date: new Date().toLocaleDateString('ar-SA')
-        };
-        orders.unshift(newOrder);
-        localStorage.setItem('belami_orders', JSON.stringify(orders));
-        
-        // Save customer CRM record
-        const customers = JSON.parse(localStorage.getItem('belami_customers') || '{}');
-        if (!customers[phone]) {
-            customers[phone] = { name, phone, email, city, address, spent: 0 };
-        }
-        customers[phone].spent += total;
-        localStorage.setItem('belami_customers', JSON.stringify(customers));
-        
-        // Log notification/alert
-        logAdminAlert(`🛒 طلب جديد رقم #${orderId} عبر ${methodTitle} بقيمة ${total.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`);
-        localStorage.setItem('belami_new_order_trigger', Date.now().toString());
+        saveOrderToAdmin(orderId, name, phone, email, city, address, methodTitle, total, orderItems);
 
         // Play loud sound chime and send email to belamichoco@gmail.com
-        playNewOrderSound();
-        sendOrderEmailNotification(newOrder);
-        if(typeof fireCustomerOrderEmail === 'function') fireCustomerOrderEmail(newOrder);
+        
 
         // Clear local cart
         cart = [];
@@ -1402,21 +1376,10 @@ async function handleCheckoutSubmit(event) {
 
         // Save order details locally
         const orderItems = cart.map(item => ({ name: item.product.name, quantity: item.quantity }));
-        const newOrder = {
-            orderId,
-            name,
-            phone, email, city, address,
-            paymentMethod: `بطاقة مدى / Apple Pay (Paylink - APP_ID_1784424601276)`,
-            total,
-            items: orderItems,
-            date: new Date().toLocaleDateString('ar-SA')
-        };
-        
+        saveOrderToAdmin(orderId, name, phone, email, city, address, 'Apple Pay (Paylink)', total, orderItems);
         // Dispatch instant email alert to belamichoco@gmail.com & play sound chime
         logAdminAlert(`💳 طلب دفع إلكتروني عبر Paylink رقم #${orderId} بقيمة ${total.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`);
-        sendOrderEmailNotification(newOrder);
-        if(typeof fireCustomerOrderEmail === 'function') fireCustomerOrderEmail(newOrder);
-        playNewOrderSound();
+        
 
         showToast("جاري توجيهك فوراً لصفحة السداد المباشرة في Paylink...");
         setTimeout(() => {
@@ -2157,6 +2120,7 @@ function saveOrderToAdmin(orderId, name, phone, email, city, address, paymentMet
             date: new Date().toLocaleDateString('ar-SA'),
             time: new Date().toLocaleTimeString('ar-SA'),
             timestamp: Date.now(),
+            status: 'pending',
             items: formattedItems
         };
 
@@ -2194,6 +2158,7 @@ function saveOrderToAdmin(orderId, name, phone, email, city, address, paymentMet
         }
 
         // 4. Send email alert to belamichoco@gmail.com
+        playNewOrderSound();
         sendOrderEmailNotification(newOrder);
         if(typeof fireCustomerOrderEmail === 'function') fireCustomerOrderEmail(newOrder);
 
