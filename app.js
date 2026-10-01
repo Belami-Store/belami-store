@@ -497,6 +497,7 @@ async function checkMoyasarCallback() {
         let city = urlParams.get('city');
         let address = urlParams.get('address');
         let total = parseFloat(urlParams.get('total') || '0');
+        let email = urlParams.get('email') || '';
         let coupon = urlParams.get('coupon') || '';
 
         // Check if we have pending order saved in localStorage as a backup
@@ -507,6 +508,7 @@ async function checkMoyasarCallback() {
             if (!phone) phone = pending.phone;
             if (!city) city = pending.city;
             if (!address) address = pending.address;
+            if (!email && pending.email) email = pending.email;
             if (!total || total === 0) total = pending.total;
             if (!coupon) coupon = pending.coupon;
         }
@@ -1389,7 +1391,7 @@ async function handleCheckoutSubmit(event) {
     // Build callback URL with checkout details as query parameters
     const itemsParam = cart.map(item => `${item.product.id}:${item.quantity}`).join(',');
     const callbackUrl = window.location.origin + window.location.pathname + 
-        `?pay_success=true&orderId=${orderId}&name=${encodeURIComponent(name)}&phone=${encodeURIComponent(phone)}&city=${encodeURIComponent(city)}&address=${encodeURIComponent(address)}&total=${total}&shipping=${shipping}&items=${itemsParam}&coupon=${appliedCouponCode}`;
+        `?pay_success=true&orderId=${orderId}&name=${encodeURIComponent(name)}&phone=${encodeURIComponent(phone)}&city=${encodeURIComponent(city)}&address=${encodeURIComponent(address)}&email=${encodeURIComponent(email)}&total=${total}&shipping=${shipping}&items=${itemsParam}&coupon=${appliedCouponCode}`;
 
     // ROUTE PAYMENT GATEWAYS VIA DIRECT PAYLINK LINK (https://pylnk.me/l/QVC2xH)
     if (storeSettings.activeGateway === 'paylink') {
