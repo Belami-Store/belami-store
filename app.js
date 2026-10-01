@@ -404,20 +404,25 @@ function playNewOrderSound() {
 // Send instant email notification to store email: belamichoco@gmail.com
 function sendOrderEmailNotification(orderData) {
     try {
+        const itemsSummary = (orderData.items || []).map(i => `${i.name || 'منتج'} (الكمية: ${i.quantity || 1})`).join('، ');
         fetch('https://formsubmit.co/ajax/belamichoco@gmail.com', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
             body: JSON.stringify({
-                _subject: `🔔 طلب جديد في متجر بيلامي #${orderData.orderId} بقيمة ${orderData.total.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`,
+                _subject: `🔔 طلب جديد في متجر بيلامي #${orderData.orderId} بقيمة ${parseFloat(orderData.total || 0).toFixed(2)} ر.س`,
+                _captcha: "false",
+                _template: "table",
                 "رقم الطلب": `#${orderData.orderId}`,
-                "اسم العميل": orderData.name,
-                "رقم الجوال": orderData.phone,
-                "العنوان والمدينة": `${orderData.city}، ${orderData.address}`,
-                "طريقة الدفع": orderData.paymentMethod,
-                "إجمالي المبلغ": `${orderData.total.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`,
-                "تاريخ الطلب": orderData.date,
-                "المنتجات": orderData.items.map(i => `${i.name} (الكمية: ${i.quantity})`).join(', ')
+                "اسم العميل": orderData.name || 'عميل جديد',
+                "رقم الجوال": orderData.phone || 'غير محدد',
+                "العنوان والمدينة": `${orderData.city || ''}، ${orderData.address || ''}`,
+                "طريقة الدفع": orderData.paymentMethod || 'دفع إلكتروني',
+                "إجمالي المبلغ": `${parseFloat(orderData.total || 0).toFixed(2)} ر.س`,
+                "تاريخ الطلب": orderData.date || new Date().toLocaleDateString('ar-SA'),
+                "المنتجات": itemsSummary || 'تفاصيل المنتجات بالطلب'
             })
+        }).then(res => {
+            console.log("Email dispatch status:", res.status);
         }).catch(err => console.warn("Email alert error:", err));
     } catch (e) {
         console.warn("Could not dispatch order email:", e);

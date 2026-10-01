@@ -224,6 +224,7 @@ document.addEventListener('input', function(e) {
       <button id="extend-session-btn" onclick="extendSession()" style="display:none; width:100%; background:#c9a96e; color:#1a1a2e; border:none; padding:6px; border-radius:6px; font-size:0.75rem; cursor:pointer; font-family:'Tajawal', sans-serif; font-weight:700;">+ تمديد ساعتين</button>
     </div>
 
+    <button onclick="toggleNotif(true)" style="width:100%;background:#10b981;color:#fff;border:none;padding:10px;border-radius:10px;font-size:0.85rem;cursor:pointer;font-family:'Tajawal',sans-serif;font-weight:800;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="fa-solid fa-bell"></i> تجربة رنة التنبيه</button>
     <button class="btn-logout" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</button>
   </div>
 </div>
@@ -966,37 +967,92 @@ window.addEventListener('DOMContentLoaded',()=>{
 // ══════════════════════════════════════════════
 // 🔔 REAL-TIME ORDER NOTIFICATION SYSTEM
 // ══════════════════════════════════════════════
-let lastOrderCount = 0;
+// ══════════════════════════════════════════════
+// 🔔 REAL-TIME ORDER NOTIFICATION SYSTEM (Firebase Polling & Mobile Chime)
+// ══════════════════════════════════════════════
+let audioCtx = null;
 let notifEnabled = true;
+let knownOrderIds = new Set();
+let orderPollingTimer = null;
+let monitoringInitialized = false;
 
-// Play a beautiful bell chime using Web Audio API
+// Audio unlocker for mobile browsers (Safari & Chrome on iOS & Android)
+function unlockMobileAudio() {
+  try {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+  } catch (e) {
+    console.warn('AudioContext unlock info:', e);
+  }
+}
+
+// Attach unlocker to all touch and click interactions
+['touchstart', 'touchend', 'click', 'pointerdown'].forEach(evtName => {
+  document.addEventListener(evtName, unlockMobileAudio, { passive: true });
+});
+
+// Play loud, multi-note melodic shop chime with physical vibration
 function playOrderBell(){
   try{
-    const ctx = new (window.AudioContext||window.webkitAudioContext)();
-    const playTone = (freq, start, dur, vol=0.5) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
-      gain.gain.setValueAtTime(0, ctx.currentTime + start);
-      gain.gain.linearRampToValueAtTime(vol, ctx.currentTime + start + 0.05);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
-      osc.start(ctx.currentTime + start);
-      osc.stop(ctx.currentTime + start + dur);
+    unlockMobileAudio();
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    const triggerTones = () => {
+      try {
+        const playTone = (freq, startOffset, dur, vol = 0.6) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          
+          osc.type = 'triangle'; // Warm, bright bell resonance
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime + startOffset);
+          
+          gain.gain.setValueAtTime(0.0001, audioCtx.currentTime + startOffset);
+          gain.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + startOffset + 0.04);
+          gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + startOffset + dur);
+          
+          osc.start(audioCtx.currentTime + startOffset);
+          osc.stop(audioCtx.currentTime + startOffset + dur);
+        };
+
+        // Melodic store chime sequence (Ding-dong-ding-DONG!) - Cycle 1
+        playTone(659.25, 0.00, 0.40, 0.65); // E5
+        playTone(830.61, 0.16, 0.40, 0.70); // G#5
+        playTone(987.77, 0.32, 0.45, 0.75); // B5
+        playTone(1318.5, 0.50, 0.85, 0.85); // E6
+
+        // Cycle 2 (Louder repeat for alert guarantee)
+        playTone(659.25, 0.95, 0.40, 0.70); // E5
+        playTone(830.61, 1.11, 0.40, 0.75); // G#5
+        playTone(987.77, 1.27, 0.45, 0.80); // B5
+        playTone(1318.5, 1.45, 1.20, 0.90); // E6
+      } catch(err) {
+        console.warn('Tone trigger error:', err);
+      }
     };
-    // Melodic bell sequence 🔔
-    playTone(880, 0.0, 0.6, 0.4);
-    playTone(1100, 0.15, 0.5, 0.3);
-    playTone(1320, 0.3, 0.7, 0.35);
-    playTone(880, 0.55, 0.8, 0.25);
-    playTone(1100, 0.75, 1.0, 0.2);
+
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume().then(triggerTones).catch(() => triggerTones());
+    } else {
+      triggerTones();
+    }
+
+    // Trigger physical vibration on mobile phone
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate([350, 120, 350, 120, 500]);
+    }
   }catch(e){ console.log('Audio error:', e); }
 }
 
 // Show visual popup notification
 function showOrderNotif(order){
-  // Remove existing if any
   const old = document.getElementById('order-notif-popup');
   if(old) old.remove();
 
@@ -1004,19 +1060,20 @@ function showOrderNotif(order){
   popup.id = 'order-notif-popup';
   popup.innerHTML = `
     <div style="display:flex;align-items:center;gap:14px">
-      <div style="width:50px;height:50px;background:linear-gradient(135deg,#c9a96e,#a07840);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0">🛍️</div>
+      <div style="width:52px;height:52px;background:linear-gradient(135deg,#c9a96e,#a07840);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.7rem;flex-shrink:0;box-shadow:0 4px 15px rgba(201,169,110,0.4)">🛍️</div>
       <div style="flex:1">
-        <div style="font-weight:900;font-size:1rem;color:#1a1a2e">طلب جديد وصل! 🎉</div>
-        <div style="font-weight:700;font-size:.88rem;color:#555;margin-top:3px">${order?.name||'عميل جديد'}</div>
-        <div style="font-size:.82rem;color:#c9a96e;font-weight:800;margin-top:2px">${parseFloat(order?.total||0).toFixed(0)} <img src='assets/sar.png' class='currency-icon' alt='SAR'></div>
+        <div style="font-weight:900;font-size:1.05rem;color:#1a1a2e">🔔 طلب جديد وصل الآن! 🎉</div>
+        <div style="font-weight:700;font-size:.88rem;color:#444;margin-top:2px">${order?.name||'عميل جديد'} (رقم #${order?.orderId||''})</div>
+        <div style="font-size:.85rem;color:#c9a96e;font-weight:800;margin-top:2px">${parseFloat(order?.total||0).toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'></div>
       </div>
-      <button onclick="this.parentElement.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:#aaa;font-size:1.2rem;padding:4px">✕</button>
+      <button onclick="showPage('orders'); document.getElementById('order-notif-popup')?.remove();" style="background:#c9a96e;color:#fff;border:none;border-radius:10px;padding:8px 14px;font-weight:800;cursor:pointer;font-family:'Tajawal',sans-serif">عرض</button>
+      <button onclick="this.parentElement.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:#aaa;font-size:1.3rem;padding:4px">✕</button>
     </div>
   `;
   Object.assign(popup.style, {
     position:'fixed', top:'20px', left:'50%', transform:'translateX(-50%) translateY(-100px)',
-    background:'#fff', borderRadius:'16px', padding:'16px 20px', minWidth:'320px',
-    boxShadow:'0 20px 50px rgba(0,0,0,.2)', zIndex:'99999',
+    background:'#fff', borderRadius:'18px', padding:'16px 20px', minWidth:'330px', maxWidth:'94%',
+    boxShadow:'0 25px 60px rgba(0,0,0,.25)', zIndex:'999999',
     border:'2px solid #c9a96e', transition:'transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275)',
     fontFamily:"'Tajawal', sans-serif"
   });
@@ -1024,37 +1081,100 @@ function showOrderNotif(order){
 
   // Slide in
   setTimeout(()=>popup.style.transform='translateX(-50%) translateY(0)', 50);
-  // Auto remove after 6 seconds
+  // Auto remove after 8 seconds
   setTimeout(()=>{
-    popup.style.transform='translateX(-50%) translateY(-120px)';
-    setTimeout(()=>popup.remove(), 400);
-  }, 6000);
-}
-
-// Check for new orders every 15 seconds
-function checkNewOrders(){
-  const orders = JSON.parse(localStorage.getItem('belami_orders')||'[]');
-  const count = orders.length;
-  if(lastOrderCount > 0 && count > lastOrderCount && notifEnabled){
-    const newest = orders[orders.length-1];
-    playOrderBell();
-    showOrderNotif(newest);
-    // Reload orders list if on orders page
-    if(document.getElementById('page-orders').classList.contains('active')){
-      allOrders = orders;
-      renderOrders();
+    if(popup.parentElement) {
+      popup.style.transform='translateX(-50%) translateY(-140px)';
+      setTimeout(()=>popup.remove(), 400);
     }
-    // Update stats on home page
-    allOrders = orders;
-    if(document.getElementById('page-home').classList.contains('active')) renderHome();
-  }
-  lastOrderCount = count;
+  }, 8000);
 }
 
-// Start monitoring after login
+// Check for new orders by polling Firebase Realtime Database directly
+async function checkNewOrders(){
+  try{
+    const res = await fetch(`${FIREBASE_DB_URL}/orders.json?t=${Date.now()}`);
+    if (!res.ok) return;
+    const fbOrders = await res.json();
+    if (!fbOrders) return;
+
+    const orderList = Array.isArray(fbOrders) ? fbOrders.filter(Boolean) : Object.values(fbOrders);
+    if (!orderList || !orderList.length) return;
+
+    let newlyArrivedOrders = [];
+
+    orderList.forEach(order => {
+      if (!order || !order.orderId) return;
+      const idKey = String(order.orderId);
+      if (!knownOrderIds.has(idKey)) {
+        knownOrderIds.add(idKey);
+        if (monitoringInitialized) {
+          newlyArrivedOrders.push(order);
+        }
+      }
+    });
+
+    if (newlyArrivedOrders.length > 0) {
+      console.log('🚨 NEW ORDER(S) DETECTED:', newlyArrivedOrders);
+
+      // Ring bell and vibrate if alerts are active
+      if (notifEnabled) {
+        playOrderBell();
+        showOrderNotif(newlyArrivedOrders[newlyArrivedOrders.length - 1]);
+      }
+
+      // Merge and persist into allOrders
+      const map = new Map();
+      [...orderList, ...allOrders].forEach(o => {
+        if (o && o.orderId) map.set(String(o.orderId), o);
+      });
+      allOrders = Array.from(map.values()).sort((a,b) => (b.orderId || 0) - (a.orderId || 0));
+      localStorage.setItem('belami_orders', JSON.stringify(allOrders));
+
+      // Live update orders table if currently viewing orders page
+      const ordersPage = document.getElementById('page-orders');
+      if (ordersPage && ordersPage.classList.contains('active')) {
+        renderOrders();
+      }
+      // Live update dashboard statistics if on home page
+      const homePage = document.getElementById('page-home');
+      if (homePage && homePage.classList.contains('active')) {
+        renderHome();
+      }
+      const badge = document.getElementById('orders-count-badge');
+      if (badge) badge.textContent = `${allOrders.length} طلب`;
+    }
+  }catch(e){
+    console.warn('Real-time order polling error:', e);
+  }
+}
+
+// Start continuous Firebase monitoring
 function startOrderMonitoring(){
-  lastOrderCount = JSON.parse(localStorage.getItem('belami_orders')||'[]').length;
-  setInterval(checkNewOrders, 15000);
+  if (orderPollingTimer) clearInterval(orderPollingTimer);
+
+  // Initialize known IDs from local storage
+  const localOrders = JSON.parse(localStorage.getItem('belami_orders') || '[]');
+  localOrders.forEach(o => {
+    if (o && o.orderId) knownOrderIds.add(String(o.orderId));
+  });
+
+  // Baseline initial fetch to avoid ringing on existing orders
+  fetch(`${FIREBASE_DB_URL}/orders.json?t=${Date.now()}`)
+    .then(r => r.json())
+    .then(fb => {
+      if (fb) {
+        const list = Array.isArray(fb) ? fb.filter(Boolean) : Object.values(fb);
+        list.forEach(o => { if (o && o.orderId) knownOrderIds.add(String(o.orderId)); });
+      }
+      monitoringInitialized = true;
+    })
+    .catch(() => {
+      monitoringInitialized = true;
+    });
+
+  // Poll Firebase every 4.5 seconds for instant real-time detection
+  orderPollingTimer = setInterval(checkNewOrders, 4500);
 }
 </script>
 
@@ -1072,33 +1192,54 @@ function startOrderMonitoring(){
 </div>
 <style>
 @keyframes slideUp { to { transform:translateY(0); } }
+@keyframes bellRingPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 .sidebar::-webkit-scrollbar { display: none; }
 .sidebar { -ms-overflow-style: none; scrollbar-width: none; }
 
 .currency-icon { height: 16px !important; width: auto !important; vertical-align: -2px !important; margin-right: 3px !important; margin-left: 3px !important; display: inline-block !important; opacity: 0.9; }
 </style>
 
-<!-- 🔔 NOTIFICATION TOGGLE BUTTON -->
-<div id="notif-toggle" style="position:fixed;bottom:28px;left:28px;z-index:500;display:none">
-  <button onclick="toggleNotif()" id="notif-btn"
-    style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#1a7fbd,#0d5a8a);color:#fff;border:none;font-size:1.3rem;cursor:pointer;box-shadow:0 6px 20px rgba(26,127,189,.4);transition:.2s"
-    title="تفعيل/إيقاف التنبيهات الصوتية">
-    🔔
+<!-- 🔔 FLOATING ORDER NOTIFICATION PILL FOR MOBILE & DESKTOP -->
+<div id="notif-toggle" style="position:fixed;bottom:24px;left:24px;z-index:99999;display:none;align-items:center;">
+  <button onclick="toggleNotif(true)" id="notif-btn"
+    style="display:flex;align-items:center;gap:10px;padding:12px 20px;border-radius:35px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;font-size:0.92rem;font-weight:800;font-family:'Tajawal',sans-serif;cursor:pointer;box-shadow:0 10px 30px rgba(16,185,129,0.4);transition:all 0.25s ease;"
+    title="انقر لتجربة رنة الطلب أو تشغيل الصوت">
+    <span id="notif-btn-icon" style="font-size:1.3rem;display:inline-block;animation:bellRingPulse 2.5s infinite ease-in-out;">🔔</span>
+    <span id="notif-btn-text">التنبيهات مفعّلة (انقر للتجربة)</span>
   </button>
 </div>
 
 <script>
-function toggleNotif(){
+function toggleNotif(testChime = false){
+  unlockMobileAudio();
+  if (testChime) {
+    notifEnabled = true;
+    const btn = document.getElementById('notif-btn');
+    if (btn) {
+      btn.style.background = 'linear-gradient(135deg,#10b981,#059669)';
+      document.getElementById('notif-btn-icon').textContent = '🔔';
+      document.getElementById('notif-btn-text').textContent = 'التنبيهات مفعّلة (انقر للتجربة)';
+    }
+    playOrderBell();
+    toast('🔔 تم اختبار رنة الطلبات بنجاح! سيدق جوالك ويهتز فور وصول أي طلب.');
+    return;
+  }
+  
   notifEnabled = !notifEnabled;
-  document.getElementById('notif-btn').textContent = notifEnabled ? '🔔' : '🔕';
-  document.getElementById('notif-btn').style.background = notifEnabled
-    ? 'linear-gradient(135deg,#1a7fbd,#0d5a8a)'
-    : 'linear-gradient(135deg,#999,#666)';
-  toast(notifEnabled ? '🔔 التنبيهات الصوتية مفعّلة' : '🔕 التنبيهات الصوتية موقوفة');
+  const btn = document.getElementById('notif-btn');
+  if (notifEnabled) {
+    btn.style.background = 'linear-gradient(135deg,#10b981,#059669)';
+    document.getElementById('notif-btn-icon').textContent = '🔔';
+    document.getElementById('notif-btn-text').textContent = 'التنبيهات مفعّلة (انقر للتجربة)';
+    playOrderBell();
+    toast('🔔 تم تفعيل التنبيهات الصوتية');
+  } else {
+    btn.style.background = 'linear-gradient(135deg,#64748b,#475569)';
+    document.getElementById('notif-btn-icon').textContent = '🔕';
+    document.getElementById('notif-btn-text').textContent = 'التنبيهات مكتومة (انقر للتفعيل)';
+    toast('🔕 تم كتم التنبيهات الصوتية');
+  }
 }
-
-// Show notif button and start monitoring when logged in
-
 
 function logout(){ localStorage.removeItem('admin_session_expiry'); location.reload(); }
 
@@ -1220,7 +1361,7 @@ function showPage(page){
 const _origInit = initApp;
 initApp = async function(){
   await _origInit();
-  document.getElementById('notif-toggle').style.display = 'block';
+  document.getElementById('notif-toggle').style.display = 'flex';
   startOrderMonitoring();
 };
 
