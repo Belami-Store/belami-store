@@ -3,13 +3,12 @@
 // 👤 CUSTOMER ACCOUNTS, CLOUD CART & PAST ORDERS ENGINE (بيلامي شوكليت)
 // =========================================================================
 
-if (typeof FIREBASE_DB_URL === 'undefined') {
-    var FIREBASE_DB_URL = "https://belami-store-default-rtdb.firebaseio.com";
-}
+window.FIREBASE_DB_URL = window.FIREBASE_DB_URL || "https://belami-store-default-rtdb.firebaseio.com";
+var FIREBASE_DB_URL = window.FIREBASE_DB_URL;
 
-let authModalCallback = null;
-let currentGeneratedOtp = null;
-let pendingAuthData = null;
+var authModalCallback = null;
+var currentGeneratedOtp = null;
+var pendingAuthData = null;
 
 // 1. Get currently logged-in customer session
 function getCurrentCustomer() {

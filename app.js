@@ -344,7 +344,8 @@ function dbFetchLocal(key, defaultValue) {
     return defaultValue;
 }
 
-const FIREBASE_DB_URL = "https://belami-store-default-rtdb.firebaseio.com";
+window.FIREBASE_DB_URL = window.FIREBASE_DB_URL || "https://belami-store-default-rtdb.firebaseio.com";
+var FIREBASE_DB_URL = window.FIREBASE_DB_URL;
 
 // Fetch key from Firebase Realtime Database with fast fallback
 async function dbFetch(key, defaultValue = null) {
@@ -1285,6 +1286,22 @@ function flipCard() {
 // Open Moyasar Payment modal and initialize form
 async function handleCheckoutSubmit(event) {
     event.preventDefault();
+
+    const customer = typeof getCurrentCustomer === 'function' ? getCurrentCustomer() : null;
+    if (!customer || !customer.phone) {
+        if (typeof openCustomerAuthModal === 'function') {
+            openCustomerAuthModal({
+                title: "تسجيل الدخول لإتمام الطلب",
+                desc: "يرجى تأكيد رقم جوالك لحفظ طلبك وسلتك في حسابك قبل الدفع",
+                onSuccess: () => {
+                    if (typeof fillCheckoutFromCustomer === 'function') fillCheckoutFromCustomer();
+                    const form = document.getElementById("checkout-form");
+                    if (form) form.requestSubmit();
+                }
+            });
+        }
+        return;
+    }
 
     const name = document.getElementById("cust-name").value;
     const phone = document.getElementById("cust-phone").value;
