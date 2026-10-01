@@ -1408,45 +1408,80 @@ async function handleCheckoutSubmit(event) {
         modal.style.display = "flex";
         setTimeout(() => {
             modal.style.opacity = "1";
-            modal.querySelector(".moyasar-modal-content").style.transform = "scale(1)";
+            const content = modal.querySelector(".moyasar-modal-content");
+            if (content) content.style.transform = "scale(1)";
         }, 10);
     }
 
-    // Determine publishable key and test/live state based on settings
-    let pubKey = storeSettings.moyasarKey ? storeSettings.moyasarKey.trim() : "";
-    if (storeSettings.testMode || !pubKey || !pubKey.startsWith("pk_live_")) {
-        pubKey = (pubKey && pubKey.startsWith("pk_test_")) ? pubKey : "pk_test_h5N7sF1hTefjR4ePehQZc8VfF2G5K8sQ1jP6VfB2";
-    }
-
-    // Initialize Moyasar Payment Form inside container '.mysr-form'
     const formContainer = document.querySelector(".mysr-form");
-    if (formContainer) formContainer.innerHTML = "";
+    if (!formContainer) return;
 
-    try {
-        if (typeof Moyasar !== 'undefined') {
-            Moyasar.init({
-                element: '.mysr-form',
-                amount: Math.round(total * 100), // Halalas
-                currency: 'SAR',
-                description: `طلب رقم #${orderId} - متجر بيلامي للشوكولاتة`,
-                publishable_api_key: pubKey,
-                callback_url: callbackUrl,
-                methods: ['creditcard', 'applepay'],
-                supported_networks: ['mada', 'visa', 'mastercard'],
-                apple_pay: {
-                    country: 'SA',
-                    label: 'Belami Chocolate',
-                    validate_merchant_url: 'https://api.moyasar.com/v1/applepay/initiate'
-                }
-            });
-        } else {
-            console.error("Moyasar library is not available.");
-            showToast("تعذر تحميل نموذج ميسر، يرجى المحاولة مرة أخرى.");
-        }
-    } catch(err) {
-        console.error("Moyasar.init error:", err);
-        showToast("خطأ في تشغيل بوابة ميسر: " + err.message);
+    // Determine publishable key from store settings
+    let pubKey = (storeSettings && storeSettings.moyasarKey) ? storeSettings.moyasarKey.trim() : "";
+
+    // If no real key configured, display clear guidance inside the modal
+    if (!pubKey) {
+        formContainer.innerHTML = `
+            <div style="padding: 20px 15px; text-align: center; background: #fffdf5; border: 1px dashed #c9a96e; border-radius: 12px; margin: 15px 0;">
+                <div style="font-size: 2.2rem; color: #b89047; margin-bottom: 12px;"><i class="fa-solid fa-key"></i></div>
+                <h4 style="color: #2c1810; margin-bottom: 10px; font-size: 1.05rem; font-weight: 700;">بانتظار مفتاح الربط للبيئة الفعلية</h4>
+                <p style="font-size: 0.88rem; color: #555; line-height: 1.6; margin-bottom: 18px;">
+                    يرجى الدخول إلى <strong>لوحة التحكم > الإعدادات</strong> ولصق "المفتاح القابل للنشر" الخاص بميسر (يبدأ بـ <code style="direction:ltr; display:inline-block; font-weight:bold; color:#1a1a2e; background:#f0f0f0; padding:2px 6px; border-radius:4px;">pk_live_...</code>) لتفعيل الدفع الفوري عبر مدى وفيزا و Apple Pay.
+                </p>
+                <button type="button" onclick="closeMoyasarModal()" class="btn" style="padding: 10px 24px; font-size: 0.95rem; border-radius: 8px;">حسناً، فهمت</button>
+            </div>
+        `;
+        return;
     }
+
+    // Show friendly loading state while Moyasar UI initializes
+    formContainer.innerHTML = `
+        <div style="padding: 35px 20px; text-align: center; color: #666;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size: 2.2rem; color: #b89047; margin-bottom: 14px; display: block;"></i>
+            <div style="font-size: 0.95rem; font-weight: 600;">جاري تجهيز بوابة الدفع الآمنة...</div>
+            <div style="font-size: 0.8rem; color: #999; margin-top: 6px;">مدى • فيزا • ماستركارد • Apple Pay</div>
+        </div>
+    `;
+
+    setTimeout(() => {
+        try {
+            if (typeof Moyasar !== 'undefined') {
+                formContainer.innerHTML = "";
+                Moyasar.init({
+                    element: '.mysr-form',
+                    amount: Math.round(total * 100), // In Halalas
+                    currency: 'SAR',
+                    description: `طلب #${orderId} - متجر بيلامي`,
+                    publishable_api_key: pubKey,
+                    callback_url: callbackUrl,
+                    methods: ['creditcard', 'applepay'],
+                    supported_networks: ['mada', 'visa', 'mastercard'],
+                    apple_pay: {
+                        country: 'SA',
+                        label: 'Belami Chocolate',
+                        validate_merchant_url: 'https://api.moyasar.com/v1/applepay/initiate'
+                    }
+                });
+            } else {
+                console.error("Moyasar library is not available.");
+                formContainer.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: #c0392b;">
+                        <i class="fa-solid fa-circle-exclamation" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                        <p style="font-size: 0.9rem;">تعذر تحميل نموذج ميسر، يرجى إعادة المحاولة.</p>
+                        <button type="button" onclick="openMoyasarModal()" class="btn" style="margin-top: 10px; padding: 6px 16px;">إعادة المحاولة</button>
+                    </div>
+                `;
+            }
+        } catch(err) {
+            console.error("Moyasar.init error:", err);
+            formContainer.innerHTML = `
+                <div style="padding: 20px; text-align: center; color: #c0392b;">
+                    <i class="fa-solid fa-circle-exclamation" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                    <p style="font-size: 0.9rem;">خطأ في تشغيل بوابة ميسر: ${err.message}</p>
+                </div>
+            `;
+        }
+    }, 120);
 }
 
 function closeMoyasarModal() {
