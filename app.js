@@ -874,6 +874,17 @@ function openCategoryView(category) {
 // Filter Products
 function filterProducts(category) {
     activeCategory = category;
+    
+    const catTitle = document.getElementById("category-title");
+    if (catTitle) {
+        if (category !== 'all') {
+            const catObj = storeSettings.categories.find(c => c.id === category);
+            catTitle.textContent = catObj ? catObj.name : 'منتجاتنا';
+        } else {
+            catTitle.textContent = "جميع الشوكولاتة";
+        }
+    }
+    
     renderProducts();
 }
 
@@ -915,8 +926,12 @@ function navigateTo(view) {
         return;
     }
 
-    // Scroll to top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Scroll to top safely
+    try {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch(e) {
+        window.scrollTo(0, 0);
+    }
     
     // Close mobile menu if open
     const navMenu = document.getElementById("nav-menu");
