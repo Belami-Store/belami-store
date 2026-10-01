@@ -24,10 +24,11 @@
     <meta name="twitter:image" content="https://belami-sa.netlify.app/assets/luxury_chocolate_box.jpg">
     
     <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
     
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
     
     <!-- Apple Pay Official JS SDK -->
     <script src="https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js"></script>
@@ -106,8 +107,8 @@
             <div class="nav-actions">
                 <!-- Admin access: hidden - open via URL: be-lami.netlify.app#admin -->
                 <a href="#admin" onclick="navigateTo('admin')" class="user-action-btn" title="لوحة التحكم" style="display:none; color: var(--text-gold);"><i class="fa-solid fa-lock"></i></a>
-                <button class="customer-nav-btn" id="customer-nav-btn" onclick="handleCustomerNavClick()" title="تسجيل الدخول / حسابي" style="background: rgba(201, 169, 110, 0.12); border: 1px solid rgba(201, 169, 110, 0.35); color: var(--primary); padding: 7px 14px; border-radius: 20px; font-family: 'Tajawal', sans-serif; font-size: 0.85rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;">
-                    <i class="fa-regular fa-user" id="customer-nav-icon"></i>
+                <button class="customer-nav-btn" id="customer-nav-btn" onclick="handleCustomerNavClick()" title="تسجيل الدخول / حسابي">
+                    <i class="fa-solid fa-user" id="customer-nav-icon"></i>
                     <span id="customer-nav-label">دخول / حسابي</span>
                 </button>
                 <button class="cart-icon-btn" onclick="toggleCart(true)" aria-label="سلة المشتريات">
@@ -1358,7 +1359,8 @@
     </div>
 
     <!-- Custom Logic Script -->
-    <script src="app.js?v=14"></script>
+    <script src="customer_engine.js?v=1"></script>
+    <script src="app.js?v=15"></script>
 </body>
 </html>
 

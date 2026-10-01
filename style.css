@@ -2290,5 +2290,55 @@ footer {
     opacity: 1;
 }
 
-.currency-icon { height: 16px; vertical-align: -2px; margin-right: 3px; margin-left: 3px; display: inline-block; opacity: 0.9; }
+.currency-icon { height: 16px !important; width: auto !important; vertical-align: -2px !important; margin-right: 3px !important; margin-left: 3px !important; display: inline-block !important; opacity: 0.9; }
+
+/* FontAwesome Protection - ensure icons are never overridden by Tajawal font */
+.fa, .fas, .fa-solid {
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+    display: inline-block;
+}
+.far, .fa-regular {
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 400 !important;
+    display: inline-block;
+}
+.fab, .fa-brands {
+    font-family: "Font Awesome 6 Brands" !important;
+    font-weight: 400 !important;
+    display: inline-block;
+}
+
+/* Customer Nav Button */
+.customer-nav-btn {
+    background: rgba(201, 169, 110, 0.12);
+    border: 1px solid rgba(201, 169, 110, 0.35);
+    color: var(--primary);
+    padding: 7px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    font-family: var(--font-main);
+}
+.customer-nav-btn:hover {
+    background: rgba(201, 169, 110, 0.22);
+    transform: translateY(-1px);
+}
+@media (max-width: 600px) {
+    .customer-nav-btn {
+        padding: 8px !important;
+        border-radius: 50% !important;
+        width: 38px !important;
+        height: 38px !important;
+        justify-content: center !important;
+    }
+    .customer-nav-btn span#customer-nav-label {
+        display: none !important;
+    }
+}
 

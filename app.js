@@ -647,7 +647,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         storeSettings.moyasarKey = "pk_live_VMv3nn7eW1L3Ryxa2iGmLodL4GGn6HEmNC6GUnGj";
     }
     products = dbFetchLocal('products', defaultProducts);
-    initCartAndCustomer();
+    if (typeof initCartAndCustomer === 'function') {
+        initCartAndCustomer();
+    }
     reviewsList = dbFetchLocal('store_reviews', reviewsList);
     
     // Ensure product 21 ("شوكولاتة قهوتك اليوم") exists in products list
@@ -1045,7 +1047,9 @@ function removeFromCart(cartItemId) {
 // Update Badge Count
 function updateCartCount() {
     const count = cart.reduce((total, item) => total + item.quantity, 0);
-    document.getElementById("cart-badge-count").textContent = count;
+    const badge = document.getElementById("cart-badge-count");
+    if (badge) badge.textContent = count;
+    if (typeof saveCartLocallyAndCloud === 'function') saveCartLocallyAndCloud();
 }
 
 // Calculate totals
@@ -2157,6 +2161,16 @@ function saveOrderToAdmin(orderId, name, phone, city, address, paymentMethod, to
                 body: JSON.stringify(newOrder)
             }).then(() => {
                 console.log(`Order #${orderId} saved to Firebase.`);
+                if (phone) {
+                    try {
+                        fetch(`${FIREBASE_DB_URL}/customers/${phone}/orders/${orderId}.json`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(newOrder)
+                        }).catch(e => console.warn('Customer order save error:', e));
+                        fetch(`${FIREBASE_DB_URL}/customers/${phone}/cart.json`, { method: 'DELETE' }).catch(e => console.warn('Cloud cart clear error:', e));
+                    } catch(e) {}
+                }
             }).catch(err => console.warn('Firebase order save error:', err));
         } catch(e) {
             console.warn('Firebase order save error:', e);
