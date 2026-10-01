@@ -1791,17 +1791,17 @@ window.updateOrderStatus = async function(orderId, newStatus) {
     
     try {
         // Save to Firebase orders
-        await fetch(\/orders/\.json, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+        await fetch(`${FIREBASE_DB_URL}/orders/${orderId}.json`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ status: newStatus })
         });
         
         // Save to Firebase customer orders (if phone is known)
         if (order.phone) {
-            await fetch(\/customers/\/orders/\.json, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
+            await fetch(`${FIREBASE_DB_URL}/customers/${order.phone}/orders/${orderId}.json`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ status: newStatus })
             }).catch(e => console.warn(e));
         }
@@ -1810,18 +1810,16 @@ window.updateOrderStatus = async function(orderId, newStatus) {
         renderOrders();
         
         // Send email update to customer
-        if (typeof sendCustomerEmail === 'function' && order.email) {
-            let statusText = newStatus === 'pending' ? 'قيد التجهيز' : (newStatus === 'review' ? 'جاري التوصيل' : 'مكتمل');
-            let bodyHtml = 
-                <div style="direction: rtl; font-family: Arial, sans-serif;">
-                    <h2 style="color: #b89047;">مرحباً \،</h2>
-                    <p>نود إعلامك بتحديث حالة طلبك رقم <strong>#\</strong> من بيلامي للشوكولاتة.</p>
+        if (typeof sendCustomerEmail === "function" && order.email) {
+            let statusText = newStatus === "pending" ? "قيد التجهيز" : (newStatus === "review" ? "جاري التوصيل" : "مكتمل");
+            let bodyHtml = `<div style="direction: rtl; font-family: Arial, sans-serif;">
+                    <h2 style="color: #b89047;">مرحباً ${order.name}،</h2>
+                    <p>نود إعلامك بتحديث حالة طلبك رقم <strong>#${order.orderId}</strong> من بيلامي للشوكولاتة.</p>
                     <p style="font-size: 1.1rem; padding: 15px; background: #f9f9f9; border-right: 4px solid #b89047; margin: 20px 0;">
-                        الحالة الجديدة: <strong>\</strong>
+                        الحالة الجديدة: <strong>${statusText}</strong>
                     </p>
                     <p>نشكرك على تسوقك معنا!</p>
-                </div>
-            ;
+                </div>`;
             await sendCustomerEmail(order.email, "تحديث حالة الطلب #" + order.orderId, bodyHtml);
         }
     } catch(e) {
