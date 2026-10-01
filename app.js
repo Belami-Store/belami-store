@@ -321,7 +321,7 @@ let storeSettings = {
         { id: "hospitality", name: "بكجات ضيافة" },
         { id: "corporate", name: "هدايا الشركات" }
     ],
-    moyasarKey: "pk_test_h5N7sF1hTefjR4ePehQZc8VfF2G5K8sQ1jP6VfB2", // Demo key
+    moyasarKey: "pk_live_VMv3nn7eW1L3Ryxa2iGmLodL4GGn6HEmNC6GUNgj",
     tapKey: "pk_test_V32tNaCg6sbZPH9q5J0SdA0E", // Sandbox default
     paylinkKey: "APP_ID_1784424601276",
     paylinkSecret: "3d338d24-08f6-3e0c-bd14-d7bf76261ba1",
