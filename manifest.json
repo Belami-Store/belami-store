@@ -1,0 +1,22 @@
+{
+  "name": "بيلامي شوكليت - جهاز استقبال الطلبات",
+  "short_name": "بيلامي كاشير",
+  "description": "لوحة تحكم واستقبال طلبات متجر بيلامي شوكليت الفورية",
+  "start_url": "/admin.html",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0d1b2a",
+  "theme_color": "#1a7fbd",
+  "icons": [
+    {
+      "src": "assets/chocolate_by_kilo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "assets/chocolate_by_kilo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}

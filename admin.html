@@ -6,6 +6,8 @@
 <title>بيلامي شوكليت - لوحة التحكم</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a7fbd">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Tajawal',sans-serif;background:#f0f4f8;color:#1a1a2e;display:flex;min-height:100vh}
@@ -1170,6 +1172,158 @@ function playOrderBell(){
 }
 
 // Show visual popup notification
+// ══════════════════════════════════════════════════════════════
+// 🖥️ نظام جهاز استقبال الطلبات الفوري (POS Order Receiver Engine)
+// ══════════════════════════════════════════════════════════════
+let orderAlarmInterval = null;
+let currentUnacceptedOrder = null;
+let wakeLock = null;
+
+// Screen Wake Lock (يبقي شاشة اللابتوب أو الجوال مفتوحة بدون نوم كشاشة كاشير)
+async function requestScreenWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      console.log('Screen Wake Lock is active - الشاشة نشطة دائماً لاستقبال الطلبات.');
+    }
+  } catch (err) {
+    console.warn('Wake Lock warning:', err);
+  }
+}
+
+// Request System Notifications & WakeLock on any initial user touch/click
+['touchstart', 'click', 'keydown'].forEach(evt => {
+  document.addEventListener(evt, () => {
+    requestScreenWakeLock();
+    if ('Notification' in window && Notification.permission === 'default') {
+      try { Notification.requestPermission(); } catch(e){}
+    }
+  }, { once: true, passive: true });
+});
+
+// Register Service Worker for background operations
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW registration:', err));
+  });
+}
+
+// تشغيل رنة مستمرة لا تتوقف إلا عند ضغط [استلام الطلب] كجهاز الكاشير
+function startContinuousOrderAlarm(order) {
+  currentUnacceptedOrder = order;
+  
+  // Play chime immediately
+  playOrderBell();
+  
+  // Keep repeating every 2.8 seconds until accepted
+  if (orderAlarmInterval) clearInterval(orderAlarmInterval);
+  orderAlarmInterval = setInterval(() => {
+    playOrderBell();
+  }, 2800);
+
+  // Show full-screen POS receipt modal
+  showPosOrderModal(order);
+
+  // Send desktop/mobile system notification (works even if minimized)
+  sendSystemNotification(order);
+}
+
+// إيقاف رنة التنبيه عند قبول واستلام الطلب
+function stopOrderAlarm() {
+  if (orderAlarmInterval) {
+    clearInterval(orderAlarmInterval);
+    orderAlarmInterval = null;
+  }
+  const modal = document.getElementById('pos-order-modal');
+  if (modal) modal.remove();
+  toast('✅ تم استلام الطلب وتأكيده بنجاح');
+}
+
+// كرت شاشة استقبال الطلبات الكامل (POS Terminal View)
+function showPosOrderModal(order) {
+  const old = document.getElementById('pos-order-modal');
+  if (old) old.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'pos-order-modal';
+  modal.style.cssText = `
+    position: fixed; inset: 0; z-index: 9999999;
+    background: rgba(13, 27, 42, 0.88); backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px; font-family: 'Tajawal', sans-serif;
+  `;
+
+  const itemsList = (order.items || []).map(i => `
+    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed #e2e8f0;font-size:0.95rem;">
+      <span style="font-weight:700;color:#1a1a2e">${i.name || 'منتج'}</span>
+      <span style="color:#c9a96e;font-weight:800">${i.quantity || 1} × ${parseFloat(i.price || 0).toFixed(0)} ر.س</span>
+    </div>
+  `).join('');
+
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:24px;width:100%;max-width:480px;padding:32px 24px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,0.6);border:3px solid #10b981;animation:slideUp 0.3s forwards;">
+      <div style="width:80px;height:80px;margin:0 auto 16px;background:linear-gradient(135deg,#10b981,#059669);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2.4rem;color:#fff;box-shadow:0 10px 30px rgba(16,185,129,0.5)">
+        <i class="fa-solid fa-bell"></i>
+      </div>
+      <div style="background:#e8f5e9;color:#2e7d32;display:inline-block;padding:5px 16px;border-radius:20px;font-weight:800;font-size:0.9rem;margin-bottom:12px;">
+        🚨 جهاز استقبال الطلبات: طلب جديد وصل الآن!
+      </div>
+      <h2 style="font-size:1.6rem;color:#1a1a2e;font-weight:900;margin:0 0 6px;">طلب رقم #${order.orderId || ''}</h2>
+      <div style="font-size:1.25rem;color:#c9a96e;font-weight:900;margin-bottom:18px;">
+        المبلغ: ${parseFloat(order.total || 0).toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>
+      </div>
+
+      <div style="background:#f8fafc;border-radius:16px;padding:16px;text-align:right;margin-bottom:24px;border:1px solid #e2e8f0;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:0.95rem;">
+          <span style="color:#64748b;">اسم العميل:</span>
+          <span style="font-weight:800;color:#0f172a;">${order.name || 'عميل'}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:0.95rem;">
+          <span style="color:#64748b;">رقم الجوال:</span>
+          <span style="font-weight:800;color:#0f172a;" dir="ltr"><a href="tel:${order.phone||''}" style="color:#1a7fbd;text-decoration:none">${order.phone||''}</a></span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:12px;font-size:0.95rem;">
+          <span style="color:#64748b;">طريقة الدفع:</span>
+          <span style="font-weight:800;color:#10b981;">${order.paymentMethod || 'مدفوع إلكترونياً'}</span>
+        </div>
+        <div style="border-top:1px solid #e2e8f0;padding-top:10px;">
+          <div style="font-weight:800;color:#475569;margin-bottom:6px;font-size:0.85rem;">تفاصيل الطلب:</div>
+          ${itemsList}
+        </div>
+      </div>
+
+      <button onclick="stopOrderAlarm(); showPage('orders');" style="width:100%;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;padding:16px;border-radius:14px;font-size:1.15rem;font-weight:900;cursor:pointer;font-family:'Tajawal',sans-serif;box-shadow:0 8px 25px rgba(16,185,129,0.4);">
+        ✅ قبول واستلام الطلب (إيقاف الرنة)
+      </button>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+}
+
+// إرسال إشعار نظام الويندوز/الماك/الجوال (Desktop Toast Notification)
+function sendSystemNotification(order) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    try {
+      const notif = new Notification(`🛍️ طلب جديد #${order.orderId} - متجر بيلامي`, {
+        body: `العميل: ${order.name || 'عميل'} | المبلغ: ${parseFloat(order.total||0).toFixed(2)} ر.س\nانقر هنا لفتح الفاتورة فوراً`,
+        icon: 'assets/chocolate_by_kilo.jpg',
+        badge: 'assets/chocolate_by_kilo.jpg',
+        requireInteraction: true, // يبقى ظاهراً على شاشة اللابتوب ولا يختفي حتى تنقر عليه!
+        tag: `order-${order.orderId}`
+      });
+      notif.onclick = function() {
+        window.focus();
+        stopOrderAlarm();
+        showPage('orders');
+        this.close();
+      };
+    } catch(e) {
+      console.warn('System Notification error:', e);
+    }
+  }
+}
+
 function showOrderNotif(order){
   const old = document.getElementById('order-notif-popup');
   if(old) old.remove();
@@ -1237,8 +1391,8 @@ async function checkNewOrders(){
 
       // Ring bell and vibrate if alerts are active
       if (notifEnabled) {
-        playOrderBell();
-        showOrderNotif(newlyArrivedOrders[newlyArrivedOrders.length - 1]);
+        const newestOrder = newlyArrivedOrders[newlyArrivedOrders.length - 1];
+        startContinuousOrderAlarm(newestOrder);
       }
 
       // Merge and persist into allOrders
@@ -1339,7 +1493,11 @@ function toggleNotif(testChime = false){
       document.getElementById('notif-btn-text').textContent = 'التنبيهات مفعّلة (انقر للتجربة)';
     }
     playOrderBell();
-    toast('🔔 تم اختبار رنة الطلبات بنجاح! سيدق جوالك ويهتز فور وصول أي طلب.');
+    requestScreenWakeLock();
+    if ('Notification' in window && Notification.permission === 'default') {
+      try { Notification.requestPermission(); } catch(e){}
+    }
+    toast('🖥️ جهاز استقبال الطلبات مفعّل: الشاشة لن تنطفئ، وسيرن جهازك باستمرار ويهتز مع إشعار سطح المكتب فور وصول أي طلب!');
     return;
   }
   
