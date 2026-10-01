@@ -179,7 +179,7 @@ document.addEventListener('input', function(e) {
         }
     }
 });</script>
-<script src="customer_email.js?v=1"></script></head>
+<script src="customer_email.js?v=2"></script></head>
 <body>
 
 <!-- LOGIN -->
@@ -779,7 +779,7 @@ function renderOrders(filter){
       <td>${payBadge}</td>
       <td style="color:#777;font-size:.78rem">${o.date||''} <br><small style="color:#aaa">${o.time||''}</small></td>
       <td>
-        <select class="status-dropdown" style="padding: 4px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; border: 1px solid #ccc; background: ${o.status==='pending'?'#fff3e0':(o.status==='review'?'#e3f2fd':'#e8f5e9')}; color: ${o.status==='pending'?'#e65100':(o.status==='review'?'#1565c0':'#2e7d32')};" onchange="updateOrderStatus('${o.orderId}', this.value)"><option value="pending" ${o.status==='pending'?'selected':''}>قيد التجهيز</option><option value="review" ${o.status==='review'?'selected':''}>جاري التوصيل</option><option value="done" ${(o.status==='done' || !o.status)?'selected':''}>مكتمل</option></select>
+        <select class="status-dropdown" style="padding: 4px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; border: 1px solid #ccc; background: ${(o.status==='pending' || !o.status)?'#fff3e0':(o.status==='review'?'#e3f2fd':'#e8f5e9')}; color: ${(o.status==='pending' || !o.status)?'#e65100':(o.status==='review'?'#1565c0':'#2e7d32')};" onchange="updateOrderStatus('${o.orderId}', this.value)"><option value="pending" ${(o.status==='pending' || !o.status)?'selected':''}>قيد التجهيز</option><option value="review" ${o.status==='review'?'selected':''}>جاري التوصيل</option><option value="done" ${o.status==='done'?'selected':''}>مكتمل</option></select>
       </td>
     </tr>`;
   }).join('');
