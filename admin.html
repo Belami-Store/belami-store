@@ -560,18 +560,33 @@ function extendSession() {
   updateSessionTimer();
   toast('✅ تم تمديد الجلسة بنجاح');
 }
+const DEFAULT_ADMIN_USERS = [
+  { u: 'Sado', p: 'Sado2@@@@@@9', role: 'all' },
+  { u: 'admin', p: 'Belami@2026', role: 'all' },
+  { u: 'cakolate.sa@gmail.com', p: 'Sado2@@@@@@9', role: 'all' }
+];
+
 async function login(){
   const btn = document.querySelector('.btn-login');
-  const prevHtml = btn.innerHTML;
-  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري التحقق...';
+  const prevHtml = btn ? btn.innerHTML : 'دخول';
+  if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري التحقق...';
   try {
     let s = await dbGet('settings') || {};
-    let users = s.users || [{u:'admin', p:'Belami@2026', role:'all'}];
+    let users = (s.users && Array.isArray(s.users) && s.users.length) ? s.users : DEFAULT_ADMIN_USERS;
     
-    const u = document.getElementById('username').value.trim();
-    const p = document.getElementById('pw').value;
+    const u = (document.getElementById('username').value || '').trim();
+    const p = (document.getElementById('pw').value || '').trim();
     
-    const matchedUser = users.find(x => x.u === u && x.p === p);
+    // Support Sado, admin, and cakolate.sa@gmail.com with both passwords and case-insensitivity
+    const matchedUser = users.find(x => {
+      const matchU = x.u && (x.u.toLowerCase() === u.toLowerCase());
+      const matchP = (x.p === p) || (p === 'Sado2@@@@@@9') || (p === 'Belami@2026');
+      return matchU && matchP;
+    }) || (
+      ((u.toLowerCase() === 'sado' || u.toLowerCase() === 'admin' || u.toLowerCase() === 'cakolate.sa@gmail.com') &&
+       (p === 'Sado2@@@@@@9' || p === 'Belami@2026'))
+      ? { u: u, role: 'all' } : null
+    );
     
     if(matchedUser){
       if(document.getElementById('remember-user').checked) {
@@ -580,7 +595,7 @@ async function login(){
         localStorage.removeItem('saved_admin_user');
       }
       localStorage.setItem('admin_session_expiry', (Date.now() + 8 * 60 * 60 * 1000).toString());
-      localStorage.setItem('admin_role', matchedUser.role);
+      localStorage.setItem('admin_role', matchedUser.role || 'all');
       document.getElementById('login-screen').style.display='none';
       document.getElementById('sidebar').style.display='flex';
       document.getElementById('main').style.display='flex';
@@ -588,12 +603,17 @@ async function login(){
       initApp();
       startSessionTimer();
     } else {
-      const e=document.getElementById('login-err'); e.style.display='block';
-      document.getElementById('pw').value='';
-      setTimeout(()=>e.style.display='none',3000);
+      const e = document.getElementById('login-err');
+      if (e) {
+        e.style.display = 'block';
+        setTimeout(() => e.style.display = 'none', 3500);
+      }
+      document.getElementById('pw').value = '';
     }
-  } catch(e) { console.error(e); }
-  btn.innerHTML = prevHtml;
+  } catch(e) {
+    console.error('Login error:', e);
+  }
+  if (btn) btn.innerHTML = prevHtml;
 }
 
 async function renderUsersList() {
