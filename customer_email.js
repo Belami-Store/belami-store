@@ -1,4 +1,4 @@
-﻿// The URL of the Google Apps Script Web App
+// The URL of the Google Apps Script Web App
 // YOU MUST REPLACE THIS URL AFTER DEPLOYING THE GOOGLE APPS SCRIPT
 var CUSTOMER_EMAIL_API_URL = "https://script.google.com/macros/s/AKfycbxmGeVP0tq9V00EHwLW-32EdfD6fgMNGYBwKrkSY4pnzr7dXWVbr6sPfLOrj4au2F5i/exec";
 
@@ -73,11 +73,16 @@ window.generateInvoicePDF = async function(orderData) {
 window.sendCustomerEmail = async function(toEmail, subject, bodyHtml, pdfBase64 = null, pdfName = "Invoice.pdf") {
     if (!toEmail || toEmail.trim() === "") return false;
     
+    let cleanBase64 = pdfBase64;
+    if (pdfBase64 && pdfBase64.includes(',')) {
+        cleanBase64 = pdfBase64.split(',')[1];
+    }
+    
     const payload = {
         to: toEmail,
         subject: subject,
         body: bodyHtml,
-        pdfBase64: pdfBase64,
+        pdfBase64: cleanBase64,
         pdfName: pdfName
     };
     
