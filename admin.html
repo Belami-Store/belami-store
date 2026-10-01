@@ -1109,13 +1109,25 @@ function unlockMobileAudio() {
     if (audioCtx.state === 'suspended') {
       audioCtx.resume();
     }
+    // Safari & Chrome strict autoplay workaround: Play silent oscillator to force unlock
+    if (!audioCtx.unlocked) {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      gain.gain.value = 0.0001; // Silent
+      osc.start(audioCtx.currentTime);
+      osc.stop(audioCtx.currentTime + 0.05);
+      audioCtx.unlocked = true;
+      console.log("AudioContext successfully unlocked!");
+    }
   } catch (e) {
     console.warn('AudioContext unlock info:', e);
   }
 }
 
 // Attach unlocker to all touch and click interactions
-['touchstart', 'touchend', 'click', 'pointerdown'].forEach(evtName => {
+['touchstart', 'touchend', 'click', 'pointerdown', 'keydown'].forEach(evtName => {
   document.addEventListener(evtName, unlockMobileAudio, { passive: true });
 });
 
