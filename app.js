@@ -501,7 +501,10 @@ async function checkMoyasarCallback() { try {
         let coupon = urlParams.get('coupon') || '';
 
         // Check if we have pending order saved in localStorage as a backup
-        const pending = JSON.parse(localStorage.getItem('belami_pending_order') || 'null');
+        let pending = null;
+        try {
+            pending = JSON.parse(localStorage.getItem('belami_pending_order') || 'null');
+        } catch(e) {}
         if (pending) {
             if (!orderId) orderId = pending.orderId;
             if (!name) name = pending.name;
