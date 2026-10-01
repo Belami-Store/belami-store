@@ -678,6 +678,104 @@ function applyPermissions() {
 }
 
 
+// ── HOME ──
+function renderHome(){
+  const totalSales = (allOrders || []).reduce((s,o)=>s+(parseFloat(o.total)||0),0);
+  const stats = [
+    {icon:'fa-bag-shopping',bg:'#e3f2fd',color:'#1a7fbd',num:(allOrders||[]).length,label:'إجمالي الطلبات'},
+    {icon:'fa-circle-dollar-to-slot',bg:'#e8f5e9',color:'#2e7d32',num:totalSales.toFixed(2)+' <img src="assets/sar.png" class="currency-icon" alt="SAR">',label:'إجمالي المبيعات'},
+    {icon:'fa-users',bg:'#f3e5f5',color:'#6a1b9a',num:Object.keys(allCustomers||{}).length,label:'إجمالي العملاء'},
+    {icon:'fa-box-open',bg:'#fff3e0',color:'#e65100',num:(allProducts||[]).length,label:'إجمالي المنتجات'},
+  ];
+  const statsGrid = document.getElementById('stats-grid');
+  if(statsGrid) {
+    statsGrid.innerHTML = stats.map(s=>`
+      <div class="stat-card">
+        <div class="stat-icon" style="background:${s.bg};color:${s.color}"><i class="fa-solid ${s.icon}"></i></div>
+        <div><div class="stat-num">${s.num}</div><div class="stat-label">${s.label}</div></div>
+      </div>`).join('');
+  }
+
+  const recent = [...(allOrders||[])].reverse().slice(0,8);
+  const homeOrdersList = document.getElementById('home-orders-list');
+  if(homeOrdersList) {
+    homeOrdersList.innerHTML = recent.length ? `
+      <table class="orders-table"><thead><tr><th>العميل</th><th>المبلغ</th><th>التاريخ</th><th>الحالة</th></tr></thead><tbody>
+      ${recent.map(o=>`<tr>
+        <td><div class="customer-cell" style="display:flex;align-items:center;gap:8px"><div class="customer-avatar" style="width:30px;height:30px;border-radius:50%;background:#e3f2fd;color:#1565c0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem">${o.name?.[0]||'ع'}</div><div><div class="customer-info" style="font-weight:700">${o.name||'عميل'}</div><div class="customer-phone" style="font-size:0.75rem;color:#777">${o.phone||''}</div></div></div></td>
+        <td class="order-amount" style="font-weight:800;color:#c9a96e">${parseFloat(o.total||0).toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'></td>
+        <td style="color:#8fa8c0;font-size:.8rem">${o.date||''}</td>
+        <td><span class="status-badge status-done" style="background:#e8f5e9;color:#2e7d32;padding:3px 8px;border-radius:12px;font-size:0.72rem;font-weight:700">مكتمل</span></td>
+      </tr>`).join('')}
+      </tbody></table>` : '<div class="empty-state"><i class="fa-solid fa-inbox"></i><p>لا توجد طلبات حديثة</p></div>';
+  }
+
+  const alerts = JSON.parse(localStorage.getItem('belami_alerts')||'[]').slice(0,20);
+  const homeAlerts = document.getElementById('home-alerts');
+  if(homeAlerts) {
+    homeAlerts.innerHTML = alerts.length ? alerts.map(a=>`
+      <div style="padding:10px 0;border-bottom:1px solid #f5f7fa;font-size:.82rem">
+        <div style="font-weight:600">${a.message||''}</div>
+        <div style="color:#aaa;font-size:.75rem;margin-top:2px">${a.time||''}</div>
+      </div>`).join('') : '<div style="text-align:center;padding:30px;color:#aaa">لا توجد تنبيهات</div>';
+  }
+}
+
+// ── ORDERS ──
+function renderOrders(filter){
+  if(filter) currentFilter=filter;
+  let orders=[...(allOrders||[])];
+  if(currentFilter==='done') orders=orders.filter(o=>o.status==='done'||!o.status);
+  if(currentFilter==='pending') orders=orders.filter(o=>o.status==='pending');
+  
+  const badge = document.getElementById('orders-count-badge');
+  if(badge) badge.textContent = orders.length + ' طلب';
+  
+  const tbody = document.getElementById('orders-tbody');
+  if(!tbody) return;
+  
+  if(orders.length === 0){
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><i class="fa-solid fa-inbox"></i><p>لا توجد طلبات حتى الآن</p></div></td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = orders.map(o => {
+    const isMoyasar = (o.paymentMethod || '').includes('ميسر');
+    const payBadge = isMoyasar 
+      ? `<span style="background:#e8f5e9;color:#2e7d32;padding:3px 8px;border-radius:12px;font-weight:700;font-size:0.75rem;">${o.paymentMethod}</span>`
+      : `<span style="background:#f0f4f8;color:#555;padding:3px 8px;border-radius:12px;font-size:0.75rem;">${o.paymentMethod||'دفع إلكتروني'}</span>`;
+      
+    const itemsText = (o.items || []).map(i => `${i.name || 'منتج'} × ${i.quantity || 1}`).join('، ');
+    
+    return `<tr>
+      <td style="font-weight:800;color:#1a7fbd;font-size:.85rem">#${o.orderId||'--'}</td>
+      <td>
+        <div class="customer-cell" style="display:flex;align-items:center;gap:8px;">
+          <div class="customer-avatar" style="width:32px;height:32px;border-radius:50%;background:#e3f2fd;color:#1565c0;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.85rem">${o.name ? o.name[0] : 'ع'}</div>
+          <div>
+            <div class="customer-info" style="font-weight:700;color:#1a1a2e">${o.name||'عميل'}</div>
+            <div class="customer-phone" style="font-size:0.75rem;color:#777"><a href="tel:${o.phone||''}" style="color:#1a7fbd;text-decoration:none">${o.phone||''}</a></div>
+          </div>
+        </div>
+      </td>
+      <td style="color:#444">${o.city||'--'}</td>
+      <td style="font-size:.82rem;max-width:200px;color:#333;line-height:1.4">${itemsText}</td>
+      <td class="order-amount" style="font-weight:800;color:#c9a96e;font-size:0.95rem">${parseFloat(o.total||0).toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'></td>
+      <td>${payBadge}</td>
+      <td style="color:#777;font-size:.78rem">${o.date||''} <br><small style="color:#aaa">${o.time||''}</small></td>
+      <td>
+        <span class="status-badge status-done" style="background:#e8f5e9;color:#2e7d32;padding:4px 10px;border-radius:20px;font-size:0.75rem;font-weight:700">مكتمل</span>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filterOrders(f,el){
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  if(el) el.classList.add('active');
+  renderOrders(f);
+}
+
 async function loadProducts(){
   const stored = await dbGet('products');
   if(stored&&Array.isArray(stored)&&stored.length) allProducts=stored;
