@@ -623,6 +623,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             { id: "corporate", name: "هدايا الشركات" }
         ];
     }
+    if (!storeSettings.moyasarKey) {
+        storeSettings.moyasarKey = "pk_live_VMv3nn7eW1L3Ryxa2iGmLodL4GGn6HEmNC6GUNgj";
+    }
     products = dbFetchLocal('products', defaultProducts);
     reviewsList = dbFetchLocal('store_reviews', reviewsList);
     
@@ -1416,23 +1419,10 @@ async function handleCheckoutSubmit(event) {
     const formContainer = document.querySelector(".mysr-form");
     if (!formContainer) return;
 
-    // Determine publishable key from store settings
-    let pubKey = (storeSettings && storeSettings.moyasarKey) ? storeSettings.moyasarKey.trim() : "";
-
-    // If no real key configured, display clear guidance inside the modal
-    if (!pubKey) {
-        formContainer.innerHTML = `
-            <div style="padding: 20px 15px; text-align: center; background: #fffdf5; border: 1px dashed #c9a96e; border-radius: 12px; margin: 15px 0;">
-                <div style="font-size: 2.2rem; color: #b89047; margin-bottom: 12px;"><i class="fa-solid fa-key"></i></div>
-                <h4 style="color: #2c1810; margin-bottom: 10px; font-size: 1.05rem; font-weight: 700;">بانتظار مفتاح الربط للبيئة الفعلية</h4>
-                <p style="font-size: 0.88rem; color: #555; line-height: 1.6; margin-bottom: 18px;">
-                    يرجى الدخول إلى <strong>لوحة التحكم > الإعدادات</strong> ولصق "المفتاح القابل للنشر" الخاص بميسر (يبدأ بـ <code style="direction:ltr; display:inline-block; font-weight:bold; color:#1a1a2e; background:#f0f0f0; padding:2px 6px; border-radius:4px;">pk_live_...</code>) لتفعيل الدفع الفوري عبر مدى وفيزا و Apple Pay.
-                </p>
-                <button type="button" onclick="closeMoyasarModal()" class="btn" style="padding: 10px 24px; font-size: 0.95rem; border-radius: 8px;">حسناً، فهمت</button>
-            </div>
-        `;
-        return;
-    }
+    // Determine publishable key from store settings or fallback directly to confirmed live key
+    let pubKey = (storeSettings && storeSettings.moyasarKey && storeSettings.moyasarKey.trim()) 
+        ? storeSettings.moyasarKey.trim() 
+        : "pk_live_VMv3nn7eW1L3Ryxa2iGmLodL4GGn6HEmNC6GUNgj";
 
     // Show friendly loading state while Moyasar UI initializes
     formContainer.innerHTML = `
