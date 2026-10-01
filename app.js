@@ -1,4 +1,4 @@
-﻿// --- CRM TRACKING ---
+// --- CRM TRACKING ---
 async function trackVisitor() {
     if(sessionStorage.getItem('v_tracked')) return;
     try {
@@ -1445,6 +1445,13 @@ async function handleCheckoutSubmit(event) {
         time: new Date().toLocaleTimeString('ar-SA')
     };
     localStorage.setItem('belami_pending_order', JSON.stringify(pendingOrder));
+    try {
+        fetch(`${FIREBASE_DB_URL}/pending_orders/${orderId}.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(pendingOrder)
+        });
+    } catch(e) {}
 
     // Open Moyasar Modal
     const modal = document.getElementById("moyasar-modal");
@@ -2125,7 +2132,10 @@ function saveOrderToAdmin(orderId, name, phone, email, city, address, paymentMet
         };
 
         // 2. Save order details locally
-        const orders = JSON.parse(localStorage.getItem('belami_orders') || '[]');
+        let orders = [];
+        try {
+            orders = JSON.parse(localStorage.getItem('belami_orders') || '[]');
+        } catch(e) {}
         const existingIdx = orders.findIndex(o => o.orderId === orderId);
         if (existingIdx !== -1) {
             orders[existingIdx] = newOrder;
@@ -2164,7 +2174,10 @@ function saveOrderToAdmin(orderId, name, phone, email, city, address, paymentMet
 
         // 5. Add or update customer in CRM (Phone index)
         if (phone) {
-            const customers = JSON.parse(localStorage.getItem('belami_customers') || '{}');
+            let customers = {};
+            try {
+                customers = JSON.parse(localStorage.getItem('belami_customers') || '{}');
+            } catch(e) {}
             if (!customers[phone]) {
                 customers[phone] = {
                     name: name || "عميل",
@@ -2187,15 +2200,17 @@ function saveOrderToAdmin(orderId, name, phone, email, city, address, paymentMet
 
 // Log administrative alert to localStorage feed
 function logAdminAlert(message) {
-    const alerts = JSON.parse(localStorage.getItem('belami_alerts') || '[]');
-    const newAlert = {
-        id: Date.now() + '-' + Math.floor(Math.random() * 100),
-        message,
-        time: new Date().toLocaleTimeString()
-    };
-    alerts.unshift(newAlert);
-    if (alerts.length > 50) alerts.pop();
-    localStorage.setItem('belami_alerts', JSON.stringify(alerts));
+    try {
+        const alerts = JSON.parse(localStorage.getItem('belami_alerts') || '[]');
+        const newAlert = {
+            id: Date.now() + '-' + Math.floor(Math.random() * 100),
+            message,
+            time: new Date().toLocaleTimeString()
+        };
+        alerts.unshift(newAlert);
+        if (alerts.length > 50) alerts.pop();
+        localStorage.setItem('belami_alerts', JSON.stringify(alerts));
+    } catch(e) {}
 }
 
 // Play notification ringtone chime (Web Audio API - Offline compatible)
