@@ -486,7 +486,7 @@ function applyStoreSettings() {
 }
 
 // Check if the current URL contains a redirect from Moyasar
-async function checkMoyasarCallback() {
+async function checkMoyasarCallback() { try {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('pay_success') === 'true' || urlParams.has('id') || urlParams.has('status')) {
         const status = urlParams.get('status');
@@ -591,6 +591,7 @@ async function checkMoyasarCallback() {
             navigateTo('checkout');
         }
     }
+} catch (criticalError) { console.error('CRITICAL FATAL ERROR IN CALLBACK:', criticalError); try { const pending = JSON.parse(localStorage.getItem('belami_pending_order')); if (pending) { saveOrderToAdmin(pending.orderId || Date.now(), pending.name || 'Unknown', pending.phone || 'Unknown', pending.email || '', pending.city || '', pending.address || '', 'Emergency Backup Save', pending.total || 0, pending.items || []); } } catch(e){} }
 }
 
 // Background cloud sync to keep local data updated without overwriting user edits
