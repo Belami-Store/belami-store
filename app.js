@@ -321,7 +321,7 @@ let storeSettings = {
         { id: "hospitality", name: "بكجات ضيافة" },
         { id: "corporate", name: "هدايا الشركات" }
     ],
-    moyasarKey: "pk_live_VMv3nn7eW1L3Ryxa2iGmLodL4GGn6HEmNC6GUNgj",
+    moyasarKey: "pk_live_VMv3nn7eW1L3Ryxa2iGmLodL4GGn6HEmNC6GUnGj",
     tapKey: "pk_test_V32tNaCg6sbZPH9q5J0SdA0E", // Sandbox default
     paylinkKey: "APP_ID_1784424601276",
     paylinkSecret: "3d338d24-08f6-3e0c-bd14-d7bf76261ba1",
@@ -624,7 +624,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         ];
     }
     if (!storeSettings.moyasarKey) {
-        storeSettings.moyasarKey = "pk_live_VMv3nn7eW1L3Ryxa2iGmLodL4GGn6HEmNC6GUNgj";
+        storeSettings.moyasarKey = "pk_live_VMv3nn7eW1L3Ryxa2iGmLodL4GGn6HEmNC6GUnGj";
     }
     products = dbFetchLocal('products', defaultProducts);
     reviewsList = dbFetchLocal('store_reviews', reviewsList);
@@ -1422,7 +1422,7 @@ async function handleCheckoutSubmit(event) {
     // Determine publishable key from store settings or fallback directly to confirmed live key
     let pubKey = (storeSettings && storeSettings.moyasarKey && storeSettings.moyasarKey.trim()) 
         ? storeSettings.moyasarKey.trim() 
-        : "pk_live_VMv3nn7eW1L3Ryxa2iGmLodL4GGn6HEmNC6GUNgj";
+        : "pk_live_VMv3nn7eW1L3Ryxa2iGmLodL4GGn6HEmNC6GUnGj";
 
     // Show friendly loading state while Moyasar UI initializes
     formContainer.innerHTML = `
