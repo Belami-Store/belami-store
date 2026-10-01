@@ -448,6 +448,14 @@ function applyStoreSettings() {
             if (footerLogoFallback) footerLogoFallback.style.display = 'none';
         });
     }
+
+    // Dynamically update shipping label to match database
+    const deliveryPriceSpans = document.querySelectorAll(".delivery-price");
+    deliveryPriceSpans.forEach(span => {
+        if (span.textContent.includes("35.00") || span.textContent.includes("ر.س")) {
+            span.textContent = `${parseFloat(storeSettings.shippingCost).toFixed(2)} ر.س`;
+        }
+    });
     
     // Update category nav
     const navMenu = document.getElementById('nav-menu');

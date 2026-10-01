@@ -46,6 +46,11 @@ window.generateInvoicePDF = async function(orderData) {
         </div>
     `;
 
+    // Attach to DOM temporarily for html2pdf to render properly on mobile
+    invoiceDiv.style.position = "fixed";
+    invoiceDiv.style.left = "-9999px";
+    document.body.appendChild(invoiceDiv);
+
     const opt = {
         margin:       10,
         filename:     `Invoice_${orderId}.pdf`,
@@ -56,6 +61,7 @@ window.generateInvoicePDF = async function(orderData) {
 
     try {
         const pdfBlob = await html2pdf().from(invoiceDiv).set(opt).output('blob');
+        document.body.removeChild(invoiceDiv);
         
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -65,6 +71,7 @@ window.generateInvoicePDF = async function(orderData) {
         });
     } catch (e) {
         console.error("Error generating PDF:", e);
+        if (document.body.contains(invoiceDiv)) document.body.removeChild(invoiceDiv);
         return null;
     }
 };
