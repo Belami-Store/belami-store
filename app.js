@@ -647,6 +647,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         storeSettings.moyasarKey = "pk_live_VMv3nn7eW1L3Ryxa2iGmLodL4GGn6HEmNC6GUnGj";
     }
     products = dbFetchLocal('products', defaultProducts);
+    initCartAndCustomer();
     reviewsList = dbFetchLocal('store_reviews', reviewsList);
     
     // Ensure product 21 ("شوكولاتة قهوتك اليوم") exists in products list
@@ -1122,11 +1123,28 @@ function goToCheckout() {
         showToast("السلة فارغة، يرجى إضافة منتجات أولاً!");
         return;
     }
+    
+    const customer = getCurrentCustomer();
+    if (!customer) {
+        toggleCart(false);
+        openCustomerAuthModal({
+            title: "تسجيل الدخول لإتمام الطلب",
+            desc: "أضف رقم جوالك لحفظ سلتك ومتابعة طلباتك السابقة وعنوانك في موقعنا",
+            onSuccess: () => {
+                fillCheckoutFromCustomer();
+                navigateTo('checkout');
+            }
+        });
+        return;
+    }
+
+    fillCheckoutFromCustomer();
     toggleCart(false);
     navigateTo('checkout');
 }
 
-// Render Checkout Summary Sidebar
+// 
+
 function renderCheckoutSummary() {
     const container = document.getElementById("checkout-summary-items");
     container.innerHTML = "";

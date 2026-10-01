@@ -66,6 +66,7 @@
                 <a href="mailto:belamichoco@gmail.com"><i class="fa-regular fa-envelope"></i> belamichoco@gmail.com</a>
             </div>
             <div class="top-bar-right">
+                <a href="#" onclick="handleCustomerNavClick()" style="font-weight:700;"><i class="fa-regular fa-user" style="color: var(--primary); margin-left: 5px;"></i> <span id="top-bar-account-text">تسجيل الدخول / حسابي</span></a>
                 <a href="#" onclick="openPolicyModal('shipping')"><i class="fa-solid fa-truck-fast" style="color: var(--primary); margin-left: 5px;"></i> آلية الطلب والشحن</a>
                 <a href="#" onclick="openPolicyModal('terms')"><i class="fa-solid fa-file-invoice-dollar" style="color: var(--primary); margin-left: 5px;"></i> الشروط والأحكام</a>
                 <a href="#" onclick="openPolicyModal('privacy')"><i class="fa-solid fa-user-shield" style="color: var(--primary); margin-left: 5px;"></i> سياسة الخصوصية</a>
@@ -97,6 +98,7 @@
                     <li class="nav-item"><a href="#" onclick="openCategoryView('hospitality')">بكجات ضيافة</a></li>
                     <li class="nav-item"><a href="#" onclick="openCategoryView('corporate')">هدايا الشركات</a></li>
                     <li class="nav-item"><a href="#contact" onclick="navigateTo('home'); scrollToSection('contact')">اتصل بنا</a></li>
+                    <li class="nav-item" id="nav-customer-item"><a href="#" onclick="handleCustomerNavClick()"><i class="fa-regular fa-user" style="margin-left:6px;"></i> <span id="nav-customer-mobile-label">تسجيل الدخول / حسابي</span></a></li>
                 </ul>
             </nav>
 
@@ -104,6 +106,10 @@
             <div class="nav-actions">
                 <!-- Admin access: hidden - open via URL: be-lami.netlify.app#admin -->
                 <a href="#admin" onclick="navigateTo('admin')" class="user-action-btn" title="لوحة التحكم" style="display:none; color: var(--text-gold);"><i class="fa-solid fa-lock"></i></a>
+                <button class="customer-nav-btn" id="customer-nav-btn" onclick="handleCustomerNavClick()" title="تسجيل الدخول / حسابي" style="background: rgba(201, 169, 110, 0.12); border: 1px solid rgba(201, 169, 110, 0.35); color: var(--primary); padding: 7px 14px; border-radius: 20px; font-family: 'Tajawal', sans-serif; font-size: 0.85rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                    <i class="fa-regular fa-user" id="customer-nav-icon"></i>
+                    <span id="customer-nav-label">دخول / حسابي</span>
+                </button>
                 <button class="cart-icon-btn" onclick="toggleCart(true)" aria-label="سلة المشتريات">
                     <i class="fa-solid fa-bag-shopping"></i>
                     <span class="cart-badge" id="cart-badge-count">0</span>
@@ -1235,8 +1241,124 @@
         </div>
     </div>
 
+        <!-- 1. CUSTOMER AUTH MODAL (تسجيل الدخول برقم الجوال) -->
+    <div class="product-modal-overlay" id="customer-auth-modal" style="display: none; background: rgba(0,0,0,0.7); backdrop-filter: blur(6px); z-index: 9999999;" onclick="closeCustomerAuthModal()">
+        <div class="product-modal-content" onclick="event.stopPropagation()" style="max-width: 440px; width: 92%; padding: 36px 28px; text-align: center; border-radius: 24px; box-shadow: 0 30px 80px rgba(0,0,0,0.35); position: relative; border: 1px solid rgba(201,169,110,0.25);">
+            <button class="modal-close" onclick="closeCustomerAuthModal()" style="position: absolute; top: 16px; left: 16px; background: none; border: none; font-size: 1.4rem; color: #94a3b8; cursor: pointer;">&times;</button>
+            <div style="width: 70px; height: 70px; margin: 0 auto 16px; background: linear-gradient(135deg,#c9a96e,#a07840); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #fff; box-shadow: 0 10px 25px rgba(201,169,110,0.35);">
+                <i class="fa-solid fa-mobile-screen-button"></i>
+            </div>
+            <h3 id="auth-modal-title" style="font-size: 1.45rem; color: #1a1a2e; font-weight: 900; margin-bottom: 6px;">تسجيل الدخول برقم الجوال</h3>
+            <p id="auth-modal-desc" style="color: #64748b; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.5;">لحفظ سلتك ومتابعة طلباتك السابقة وإتمام الشراء بسهولة</p>
+
+            <!-- Step 1: Mobile & Name -->
+            <div id="auth-step-1">
+                <div style="text-align: right; margin-bottom: 16px;">
+                    <label style="font-weight: 700; font-size: 0.88rem; color: #334155; display: block; margin-bottom: 6px;">رقم الجوال *</label>
+                    <div style="position: relative;">
+                        <input type="tel" id="auth-phone-input" placeholder="05xxxxxxxx" pattern="05[0-9]{8}" maxlength="10" dir="ltr"
+                            style="width: 100%; padding: 13px 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-family: 'Tajawal', sans-serif; font-size: 1.1rem; font-weight: 700; text-align: left;" required>
+                        <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 0.88rem; font-weight: 700;">🇸🇦 +966</span>
+                    </div>
+                </div>
+
+                <div style="text-align: right; margin-bottom: 22px;">
+                    <label style="font-weight: 700; font-size: 0.88rem; color: #334155; display: block; margin-bottom: 6px;">الاسم الكريم *</label>
+                    <input type="text" id="auth-name-input" placeholder="الاسم الأول والأخير"
+                        style="width: 100%; padding: 13px 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-family: 'Tajawal', sans-serif; font-size: 1rem; font-weight: 600;" required>
+                </div>
+
+                <button type="button" onclick="handleCustomerLoginStep1()" class="btn" style="width: 100%; padding: 14px; background: linear-gradient(135deg,#c9a96e,#a07840); color: #fff; border: none; border-radius: 14px; font-weight: 800; font-size: 1.05rem; cursor: pointer; box-shadow: 0 8px 20px rgba(201,169,110,0.35);">
+                    متابعة وإرسال رمز التحقق <i class="fa-solid fa-arrow-left" style="margin-right: 6px;"></i>
+                </button>
+            </div>
+
+            <!-- Step 2: OTP Verification -->
+            <div id="auth-step-2" style="display: none;">
+                <p style="font-size: 0.9rem; color: #475569; margin-bottom: 16px;">
+                    تم إرسال رمز التحقق إلى الرقم <strong id="auth-display-phone" dir="ltr" style="color: #c9a96e;"></strong>
+                </p>
+                <div style="margin-bottom: 20px;">
+                    <input type="text" id="auth-otp-input" placeholder="• • • •" maxlength="4" dir="ltr"
+                        style="width: 190px; padding: 12px; border: 2px solid #c9a96e; border-radius: 14px; font-size: 1.8rem; letter-spacing: 12px; text-align: center; font-weight: 900; background: #fafaf9;">
+                </div>
+                <button type="button" onclick="handleCustomerLoginVerify()" class="btn" style="width: 100%; padding: 14px; background: linear-gradient(135deg,#10b981,#059669); color: #fff; border: none; border-radius: 14px; font-weight: 800; font-size: 1.05rem; cursor: pointer; box-shadow: 0 8px 20px rgba(16,185,129,0.35);">
+                    تأكيد الدخول ومتابعة الطلب <i class="fa-solid fa-check" style="margin-right: 6px;"></i>
+                </button>
+                <div style="margin-top: 14px; display: flex; justify-content: space-between; font-size: 0.85rem;">
+                    <button type="button" onclick="backToAuthStep1()" style="background: none; border: none; color: #64748b; font-weight: 700; cursor: pointer;">تغيير الرقم</button>
+                    <button type="button" onclick="resendCustomerOtp()" style="background: none; border: none; color: #1a7fbd; font-weight: 700; cursor: pointer;">إعادة إرسال الرمز</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. CUSTOMER ACCOUNT & PAST ORDERS MODAL (حسابي وطلباتي السابقة) -->
+    <div class="product-modal-overlay" id="customer-orders-modal" style="display: none; background: rgba(0,0,0,0.7); backdrop-filter: blur(6px); z-index: 9999999;" onclick="closeCustomerOrdersModal()">
+        <div class="product-modal-content" onclick="event.stopPropagation()" style="max-width: 640px; width: 94%; max-height: 88vh; display: flex; flex-direction: column; padding: 28px 24px; border-radius: 24px; box-shadow: 0 30px 80px rgba(0,0,0,0.35); position: relative; border: 1px solid rgba(201,169,110,0.25);">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 1px solid #f1f5f9;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg,#c9a96e,#a07840); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.3rem;">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <div style="text-align: right;">
+                        <h3 id="my-account-name" style="margin: 0; font-size: 1.2rem; color: #0f172a; font-weight: 900;">حسابي</h3>
+                        <span id="my-account-phone" style="font-size: 0.85rem; color: #64748b;" dir="ltr"></span>
+                    </div>
+                </div>
+                <button onclick="closeCustomerOrdersModal()" style="background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer;">&times;</button>
+            </div>
+
+            <!-- Tabs header -->
+            <div style="display: flex; gap: 10px; margin-top: 14px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px;">
+                <button class="account-tab-btn active" id="tab-btn-orders" onclick="switchAccountTab('orders')" style="background: none; border: none; padding: 8px 16px; font-weight: 800; font-size: 0.95rem; color: var(--primary); border-bottom: 3px solid var(--primary); cursor: pointer; font-family: 'Tajawal', sans-serif;">
+                    <i class="fa-solid fa-box-open" style="margin-left: 6px;"></i> طلباتي السابقة (<span id="my-orders-count">0</span>)
+                </button>
+                <button class="account-tab-btn" id="tab-btn-profile" onclick="switchAccountTab('profile')" style="background: none; border: none; padding: 8px 16px; font-weight: 700; font-size: 0.95rem; color: #64748b; cursor: pointer; font-family: 'Tajawal', sans-serif;">
+                    <i class="fa-regular fa-address-card" style="margin-left: 6px;"></i> بياناتي وعنواني
+                </button>
+            </div>
+
+            <!-- Tab 1: Orders list -->
+            <div id="account-tab-orders" style="overflow-y: auto; flex: 1; padding: 16px 0;">
+                <div id="customer-orders-list">
+                    <!-- Dynamic Orders -->
+                </div>
+            </div>
+
+            <!-- Tab 2: Profile & Saved Address -->
+            <div id="account-tab-profile" style="display: none; overflow-y: auto; flex: 1; padding: 20px 4px; text-align: right;">
+                <div style="margin-bottom: 14px;">
+                    <label style="font-weight: 700; font-size: 0.88rem; color: #475569; display: block; margin-bottom: 6px;">الاسم الكامل</label>
+                    <input type="text" id="profile-edit-name" style="width: 100%; padding: 11px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-family: 'Tajawal', sans-serif;">
+                </div>
+                <div style="margin-bottom: 14px;">
+                    <label style="font-weight: 700; font-size: 0.88rem; color: #475569; display: block; margin-bottom: 6px;">المدينة</label>
+                    <input type="text" id="profile-edit-city" placeholder="الرياض" style="width: 100%; padding: 11px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-family: 'Tajawal', sans-serif;">
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="font-weight: 700; font-size: 0.88rem; color: #475569; display: block; margin-bottom: 6px;">العنوان بالتفصيل</label>
+                    <input type="text" id="profile-edit-address" placeholder="الحي، اسم الشارع، رقم المنزل" style="width: 100%; padding: 11px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-family: 'Tajawal', sans-serif;">
+                </div>
+                <button type="button" onclick="saveCustomerProfileEdits()" class="btn" style="width: 100%; padding: 12px; background: linear-gradient(135deg,#c9a96e,#a07840); color: #fff; border: none; border-radius: 12px; font-weight: 800; cursor: pointer;">
+                    حفظ التعديلات
+                </button>
+            </div>
+
+            <!-- Footer actions -->
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 14px; border-top: 1px solid #f1f5f9;">
+                <button onclick="handleCustomerLogout()" style="background: #fee2e2; color: #ef4444; border: none; padding: 9px 16px; border-radius: 10px; font-weight: 800; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> تسجيل الخروج
+                </button>
+                <button onclick="closeCustomerOrdersModal()" class="btn" style="background: #f1f5f9; color: #475569; border: none; padding: 9px 20px; border-radius: 10px; font-weight: 700; font-size: 0.9rem; cursor: pointer;">
+                    إغلاق
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Custom Logic Script -->
-    <script src="app.js?v=13"></script>
+    <script src="app.js?v=14"></script>
 </body>
 </html>
 
