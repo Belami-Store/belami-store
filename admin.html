@@ -733,6 +733,15 @@ function renderOrders(filter){
   let orders=[...(allOrders||[])];
   if(currentFilter==='done') orders=orders.filter(o=>o.status==='done'||!o.status);
   if(currentFilter==='pending') orders=orders.filter(o=>o.status==='pending');
+
+  // Smart Sort: Actionable top, Newest first
+  const weight = s => s==='pending'?1 : (s==='review'?2 : 3);
+  orders.sort((a,b) => {
+    let wA = weight(a.status || 'pending');
+    let wB = weight(b.status || 'pending');
+    if(wA !== wB) return wA - wB;
+    return (b.timestamp || 0) - (a.timestamp || 0);
+  });
   
   const badge = document.getElementById('orders-count-badge');
   if(badge) badge.textContent = orders.length + ' طلب';
@@ -1423,7 +1432,7 @@ async function checkNewOrders(){
       [...orderList, ...allOrders].forEach(o => {
         if (o && o.orderId) map.set(String(o.orderId), o);
       });
-      allOrders = Array.from(map.values()).sort((a,b) => (b.orderId || 0) - (a.orderId || 0));
+      allOrders = Array.from(map.values()).sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
       localStorage.setItem('belami_orders', JSON.stringify(allOrders));
 
       // Live update orders table if currently viewing orders page

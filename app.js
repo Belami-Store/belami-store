@@ -2156,6 +2156,7 @@ function saveOrderToAdmin(orderId, name, phone, email, city, address, paymentMet
             total: parseFloat(total) || 0,
             date: new Date().toLocaleDateString('ar-SA'),
             time: new Date().toLocaleTimeString('ar-SA'),
+            timestamp: Date.now(),
             items: formattedItems
         };
 
