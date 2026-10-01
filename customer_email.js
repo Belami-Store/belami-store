@@ -1,6 +1,6 @@
 ﻿// Email API URL (Google Apps Script Web App URL)
 // ⚠️ قم باستبدال هذا الرابط بالرابط الخاص بك بعد نشر سكربت backend/email_api.gs
-var CUSTOMER_EMAIL_API_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
+var CUSTOMER_EMAIL_API_URL = "https://script.google.com/macros/s/AKfycbxmGeVP0tq9V00EHwLW-32EdfD6fgMNGYBwKrkSY4pnzr7dXWVbr6sPfLOrj4au2F5i/exec";
 
 async function generateInvoicePDF(orderId, name, phone, city, address, paymentMethod, total, items, date) {
     const invoiceDiv = document.createElement("div");
