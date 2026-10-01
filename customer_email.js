@@ -47,9 +47,17 @@ window.generateInvoicePDF = async function(orderData) {
     `;
 
     // Attach to DOM temporarily for html2pdf to render properly on mobile
-    invoiceDiv.style.position = "fixed";
-    invoiceDiv.style.left = "-9999px";
-    document.body.appendChild(invoiceDiv);
+    const wrapperDiv = document.createElement("div");
+    wrapperDiv.style.position = "absolute";
+    wrapperDiv.style.top = "0";
+    wrapperDiv.style.left = "0";
+    wrapperDiv.style.width = "1px";
+    wrapperDiv.style.height = "1px";
+    wrapperDiv.style.overflow = "hidden";
+    wrapperDiv.style.opacity = "0";
+    wrapperDiv.style.pointerEvents = "none";
+    wrapperDiv.appendChild(invoiceDiv);
+    document.body.appendChild(wrapperDiv);
 
     const opt = {
         margin:       10,
@@ -61,7 +69,7 @@ window.generateInvoicePDF = async function(orderData) {
 
     try {
         const pdfBlob = await html2pdf().from(invoiceDiv).set(opt).output('blob');
-        document.body.removeChild(invoiceDiv);
+        if (document.body.contains(wrapperDiv)) document.body.removeChild(wrapperDiv);
         
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -71,7 +79,7 @@ window.generateInvoicePDF = async function(orderData) {
         });
     } catch (e) {
         console.error("Error generating PDF:", e);
-        if (document.body.contains(invoiceDiv)) document.body.removeChild(invoiceDiv);
+        if (document.body.contains(wrapperDiv)) document.body.removeChild(wrapperDiv);
         return null;
     }
 };
