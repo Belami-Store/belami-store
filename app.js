@@ -482,74 +482,89 @@ function applyStoreSettings() {
 // Check if the current URL contains a redirect from Moyasar
 async function checkMoyasarCallback() {
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('pay_success') === 'true') {
+    if (urlParams.get('pay_success') === 'true' || urlParams.has('id') || urlParams.has('status')) {
         const status = urlParams.get('status');
-        const paymentId = urlParams.get('id');
-        const orderId = urlParams.get('orderId');
-        const name = urlParams.get('name');
-        const phone = urlParams.get('phone');
-        const city = urlParams.get('city');
-        const address = urlParams.get('address');
-        const total = parseFloat(urlParams.get('total') || '0');
-        const coupon = urlParams.get('coupon') || '';
+        const paymentId = urlParams.get('id') || urlParams.get('tap_id') || urlParams.get('charge_id') || 'PAID';
+        let orderId = urlParams.get('orderId');
+        let name = urlParams.get('name');
+        let phone = urlParams.get('phone');
+        let city = urlParams.get('city');
+        let address = urlParams.get('address');
+        let total = parseFloat(urlParams.get('total') || '0');
+        let coupon = urlParams.get('coupon') || '';
 
-            const isMoyasarSuccess = status === 'captured' || status === 'paid';
-            const isTapSuccess = urlParams.has('tap_id') || urlParams.has('charge_id') || (!status && urlParams.get('pay_success') === 'true');
+        // Check if we have pending order saved in localStorage as a backup
+        const pending = JSON.parse(localStorage.getItem('belami_pending_order') || 'null');
+        if (pending) {
+            if (!orderId) orderId = pending.orderId;
+            if (!name) name = pending.name;
+            if (!phone) phone = pending.phone;
+            if (!city) city = pending.city;
+            if (!address) address = pending.address;
+            if (!total || total === 0) total = pending.total;
+            if (!coupon) coupon = pending.coupon;
+        }
 
-            if (isMoyasarSuccess || isTapSuccess) {
-                const gatewayName = isMoyasarSuccess ? 'ميسر' : 'تاب (Tap)';
-                const gatewayPaymentId = paymentId || 'TAP_PAY';
-                
-                // Parse purchased items & increment buy counts
+        if (!orderId) {
+            orderId = `BEL-${Math.floor(10000 + Math.random() * 90000)}`;
+        }
+
+        const isMoyasarSuccess = status === 'captured' || status === 'paid' || status === 'authorized';
+        const isTapSuccess = urlParams.has('tap_id') || urlParams.has('charge_id') || (!status && urlParams.get('pay_success') === 'true');
+
+        if (isMoyasarSuccess || isTapSuccess) {
+            const gatewayName = isMoyasarSuccess ? 'ميسر' : 'تاب (Tap)';
+            const gatewayPaymentId = paymentId;
+            
+            // Build items
+            let orderItems = [];
+            if (pending && pending.items && Array.isArray(pending.items) && pending.items.length > 0) {
+                orderItems = pending.items;
+            } else {
                 const itemsParam = urlParams.get('items');
-                const orderItems = [];
-                let productsUpdated = false;
-                
                 if (itemsParam) {
                     itemsParam.split(',').forEach(part => {
                         if (part.includes(':')) {
                             const [pId, qty] = part.split(':').map(Number);
-                            const prodIndex = products.findIndex(p => p.id === pId);
-                            if (prodIndex !== -1) {
-                                products[prodIndex].purchaseCount = (products[prodIndex].purchaseCount || 0) + (qty || 1);
-                                productsUpdated = true;
-                                orderItems.push({
-                                    name: products[prodIndex].name,
-                                    quantity: qty
-                                });
+                            const prod = products.find(p => p.id === pId);
+                            if (prod) {
+                                orderItems.push({ name: prod.name, quantity: qty, price: prod.price });
                             }
                         }
                     });
-                    if (productsUpdated) {
-                        dbSave('products', products);
-                        renderProducts();
-                    }
                 }
+            }
 
-                // Save Order to cloud database CRM
-                await saveOrderToAdmin(orderId, name, phone, city, address, `مدفوع إلكترونياً (${gatewayName}: ${gatewayPaymentId})`, total, orderItems);
-            
+            // Save order safely
+            saveOrderToAdmin(orderId, name, phone, city, address, `مدفوع إلكترونياً (${gatewayName}: ${gatewayPaymentId})`, total, orderItems);
+
             // Log administrative alert
             logAdminAlert(`🎉 طلب جديد رقم #${orderId} مدفوع إلكترونياً بقيمة ${total.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`);
             localStorage.setItem('belami_new_order_trigger', Date.now().toString());
             playNotificationSound();
 
-            // Clear local cart
+            // Clear local cart & pending backup
             cart = [];
             updateCartCount();
+            localStorage.removeItem('belami_pending_order');
 
             // Fill receipt details in DOM
-            document.getElementById("receipt-order-id").textContent = `#${orderId}`;
-            document.getElementById("receipt-name").textContent = name;
-            document.getElementById("receipt-phone").textContent = phone;
-            document.getElementById("receipt-address").textContent = `${city}، ${address}`;
-            document.getElementById("receipt-payment").textContent = `مدفوع إلكترونياً (ميسر: ${paymentId})`;
-            document.getElementById("receipt-total").innerHTML = `${total.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`;
+            const rOrderId = document.getElementById("receipt-order-id");
+            if (rOrderId) rOrderId.textContent = `#${orderId}`;
+            const rName = document.getElementById("receipt-name");
+            if (rName) rName.textContent = name || "عميل بيلامي";
+            const rPhone = document.getElementById("receipt-phone");
+            if (rPhone) rPhone.textContent = phone || "";
+            const rAddr = document.getElementById("receipt-address");
+            if (rAddr) rAddr.textContent = `${city || 'الرياض'}، ${address || ''}`;
+            const rPay = document.getElementById("receipt-payment");
+            if (rPay) rPay.textContent = `مدفوع إلكترونياً (${gatewayName}: ${gatewayPaymentId})`;
+            const rTotal = document.getElementById("receipt-total");
+            if (rTotal) rTotal.innerHTML = `${total.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`;
 
             // Build WhatsApp message
-            const shippingMethodName = total > 1000 ? "توصيل مجاني للمناسبات" : (currentShippingCost === 35 ? "توصيل لجميع أحياء الرياض (35 ر.س)" : "استلام من الرياض - حي الشفا (مجاناً)");
-            const couponText = coupon ? `\n*كود الخصم المطبق:* ${coupon} (خصم 5%)` : "";
-            const msg = `مرحباً بيلامي للشوكولاتة، أود تأكيد طلبي المدفوع إلكترونياً:\n\n*رقم الطلب:* #${orderId}\n*رقم الدفع:* ${paymentId}\n*الاسم:* ${name}\n*رقم الجوال:* ${phone}\n*طريقة الاستلام:* ${shippingMethodName}\n*العنوان:* ${city}، ${address}${couponText}\n*المجموع الإجمالي:* ${total.toFixed(2)} ر.س`;
+            const couponText = coupon ? `\n*كود الخصم المطبق:* ${coupon}` : "";
+            const msg = `مرحباً بيلامي للشوكولاتة، أود تأكيد طلبي المدفوع إلكترونياً:\n\n*رقم الطلب:* #${orderId}\n*رقم الدفع:* ${gatewayPaymentId}\n*الاسم:* ${name || ''}\n*رقم الجوال:* ${phone || ''}\n*العنوان:* ${city || ''}، ${address || ''}${couponText}\n*المجموع الإجمالي:* ${total.toFixed(2)} ر.س`;
             const waLink = `https://api.whatsapp.com/send?phone=966535671116&text=${encodeURIComponent(msg)}`;
             const waBtn = document.getElementById("whatsapp-confirm-btn");
             if (waBtn) {
@@ -557,12 +572,12 @@ async function checkMoyasarCallback() {
                 waBtn.style.display = "inline-flex";
             }
 
-            // Remove query params silently from address bar so page refreshes don't re-execute logic
+            // Remove query params silently from address bar
             window.history.replaceState({}, document.title, window.location.pathname);
 
             navigateTo('success');
-            showToast("تم الدفع وتسجيل طلبك بنجاح!");
-        } else {
+            showToast("🎉 تم الدفع وتسجيل طلبك بنجاح!");
+        } else if (status === 'failed') {
             showToast("فشلت عملية الدفع! يرجى المحاولة ببطاقة أخرى.");
             window.history.replaceState({}, document.title, window.location.pathname);
             navigateTo('checkout');
@@ -1405,6 +1420,26 @@ async function handleCheckoutSubmit(event) {
         return;
     }
 
+    // Save pending order backup in localStorage
+    const pendingOrder = {
+        orderId,
+        name,
+        phone,
+        city,
+        address,
+        total,
+        shipping,
+        items: cart.map(item => ({
+            name: item.product.name,
+            quantity: item.quantity,
+            price: item.product.price
+        })),
+        coupon: appliedCouponCode,
+        date: new Date().toLocaleDateString('ar-SA'),
+        time: new Date().toLocaleTimeString('ar-SA')
+    };
+    localStorage.setItem('belami_pending_order', JSON.stringify(pendingOrder));
+
     // Open Moyasar Modal
     const modal = document.getElementById("moyasar-modal");
     if (modal) {
@@ -1450,6 +1485,42 @@ async function handleCheckoutSubmit(event) {
                         country: 'SA',
                         label: 'Belami Chocolate',
                         validate_merchant_url: 'https://api.moyasar.com/v1/applepay/initiate'
+                    },
+                    on_completed: async function (payment) {
+                        console.log("Moyasar on_completed event:", payment);
+                        if (payment && (payment.status === 'paid' || payment.status === 'captured' || payment.status === 'authorized')) {
+                            const pId = payment.id || 'MOYASAR_PAY';
+                            saveOrderToAdmin(orderId, name, phone, city, address, `مدفوع إلكترونياً (ميسر: ${pId})`, total, pendingOrder.items);
+                            closeMoyasarModal();
+                            cart = [];
+                            updateCartCount();
+                            localStorage.removeItem('belami_pending_order');
+
+                            const rOrderId = document.getElementById("receipt-order-id");
+                            if (rOrderId) rOrderId.textContent = `#${orderId}`;
+                            const rName = document.getElementById("receipt-name");
+                            if (rName) rName.textContent = name || "عميل بيلامي";
+                            const rPhone = document.getElementById("receipt-phone");
+                            if (rPhone) rPhone.textContent = phone || "";
+                            const rAddr = document.getElementById("receipt-address");
+                            if (rAddr) rAddr.textContent = `${city || 'الرياض'}، ${address || ''}`;
+                            const rPay = document.getElementById("receipt-payment");
+                            if (rPay) rPay.textContent = `مدفوع إلكترونياً (ميسر: ${pId})`;
+                            const rTotal = document.getElementById("receipt-total");
+                            if (rTotal) rTotal.innerHTML = `${total.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`;
+
+                            const couponText = appliedCouponCode ? `\n*كود الخصم:* ${appliedCouponCode}` : "";
+                            const msg = `مرحباً بيلامي للشوكولاتة، أود تأكيد طلبي المدفوع إلكترونياً:\n\n*رقم الطلب:* #${orderId}\n*رقم الدفع:* ${pId}\n*الاسم:* ${name}\n*رقم الجوال:* ${phone}\n*العنوان:* ${city}، ${address}${couponText}\n*المجموع:* ${total.toFixed(2)} ر.س`;
+                            const waBtn = document.getElementById("whatsapp-confirm-btn");
+                            if (waBtn) {
+                                waBtn.href = `https://api.whatsapp.com/send?phone=966535671116&text=${encodeURIComponent(msg)}`;
+                                waBtn.style.display = "inline-flex";
+                            }
+
+                            navigateTo('success');
+                            playNotificationSound();
+                            showToast("🎉 تم الدفع وتسجيل طلبك بنجاح!");
+                        }
                     }
                 });
             } else {
@@ -2022,45 +2093,76 @@ function processApplePayCheckout() {
 
 // Save order and customer to localStorage CRM
 function saveOrderToAdmin(orderId, name, phone, city, address, paymentMethod, total, items) {
-    // 1. Save order details
-    const orders = JSON.parse(localStorage.getItem('belami_orders') || '[]');
-    const newOrder = {
-        orderId,
-        name,
-        phone,
-        city,
-        address,
-        paymentMethod,
-        total,
-        date: new Date().toLocaleDateString(),
-        time: new Date().toLocaleTimeString(),
-        items: items.map(i => ({ name: i.product.name, quantity: i.quantity, price: i.itemPrice }))
-    };
-    orders.push(newOrder);
-    localStorage.setItem('belami_orders', JSON.stringify(orders));
-
-    // Save order to Firebase Realtime Database
     try {
-        fetch(`${FIREBASE_DB_URL}/orders/${orderId}.json`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newOrder)
-        }).catch(err => console.warn('Firebase order save error:', err));
-    } catch(e) {}
+        // 1. Format items safely (supports both { product: { name, price } } and { name, price } formats)
+        const formattedItems = (items || []).map(i => {
+            if (!i) return { name: "منتج شوكولاتة", quantity: 1, price: 0 };
+            const prodName = (i.product && i.product.name) ? i.product.name : (i.name || "منتج شوكولاتة");
+            const prodPrice = i.itemPrice || (i.product ? i.product.price : 0) || i.price || 0;
+            const prodQty = i.quantity || 1;
+            return { name: prodName, quantity: prodQty, price: prodPrice };
+        });
 
-    // 2. Add or update customer in CRM (Phone index)
-    const customers = JSON.parse(localStorage.getItem('belami_customers') || '{}');
-    if (!customers[phone]) {
-        customers[phone] = {
-            name,
-            phone,
-            city,
-            address,
-            spent: 0
+        const newOrder = {
+            orderId,
+            name: name || "عميل بيلامي",
+            phone: phone || "بدون رقم",
+            city: city || "الرياض",
+            address: address || "",
+            paymentMethod: paymentMethod || "مدفوع إلكترونياً (ميسر)",
+            total: parseFloat(total) || 0,
+            date: new Date().toLocaleDateString('ar-SA'),
+            time: new Date().toLocaleTimeString('ar-SA'),
+            items: formattedItems
         };
+
+        // 2. Save order details locally
+        const orders = JSON.parse(localStorage.getItem('belami_orders') || '[]');
+        const existingIdx = orders.findIndex(o => o.orderId === orderId);
+        if (existingIdx !== -1) {
+            orders[existingIdx] = newOrder;
+        } else {
+            orders.unshift(newOrder);
+        }
+        localStorage.setItem('belami_orders', JSON.stringify(orders));
+
+        // 3. Save order to Firebase Realtime Database
+        try {
+            fetch(`${FIREBASE_DB_URL}/orders/${orderId}.json`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newOrder)
+            }).then(() => {
+                console.log(`Order #${orderId} saved to Firebase.`);
+            }).catch(err => console.warn('Firebase order save error:', err));
+        } catch(e) {
+            console.warn('Firebase order save error:', e);
+        }
+
+        // 4. Send email alert to belamichoco@gmail.com
+        sendOrderEmailNotification(newOrder);
+
+        // 5. Add or update customer in CRM (Phone index)
+        if (phone) {
+            const customers = JSON.parse(localStorage.getItem('belami_customers') || '{}');
+            if (!customers[phone]) {
+                customers[phone] = {
+                    name: name || "عميل",
+                    phone,
+                    city: city || "الرياض",
+                    address: address || "",
+                    spent: 0
+                };
+            }
+            customers[phone].spent = (customers[phone].spent || 0) + (parseFloat(total) || 0);
+            localStorage.setItem('belami_customers', JSON.stringify(customers));
+        }
+
+        return newOrder;
+    } catch(err) {
+        console.error("Critical error inside saveOrderToAdmin:", err);
+        return null;
     }
-    customers[phone].spent += total;
-    localStorage.setItem('belami_customers', JSON.stringify(customers));
 }
 
 // Log administrative alert to localStorage feed
