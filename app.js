@@ -1,4 +1,4 @@
-// --- CRM TRACKING ---
+﻿// --- CRM TRACKING ---
 async function trackVisitor() {
     if(sessionStorage.getItem('v_tracked')) return;
     try {
@@ -542,7 +542,7 @@ async function checkMoyasarCallback() {
             }
 
             // Save order safely
-            saveOrderToAdmin(orderId, name, phone, city, address, `مدفوع إلكترونياً (${gatewayName}: ${gatewayPaymentId})`, total, orderItems);
+            saveOrderToAdmin(orderId, name, phone, email, city, address, `مدفوع إلكترونياً (${gatewayName}: ${gatewayPaymentId})`, total, orderItems);
 
             // Log administrative alert
             logAdminAlert(`🎉 طلب جديد رقم #${orderId} مدفوع إلكترونياً بقيمة ${total.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`);
@@ -1304,7 +1304,7 @@ async function handleCheckoutSubmit(event) {
     }
 
     const name = document.getElementById("cust-name").value;
-    const phone = document.getElementById("cust-phone").value;
+    const phone = document.getElementById("cust-phone").value; const email = document.getElementById("cust-email") ? document.getElementById("cust-email").value : (getCurrentCustomer() ? getCurrentCustomer().email : "");
     const city = document.getElementById("cust-city").value;
     const address = document.getElementById("cust-address").value;
     const paymentMethod = document.querySelector('input[name="payment_type"]:checked').value;
@@ -1332,9 +1332,7 @@ async function handleCheckoutSubmit(event) {
         const newOrder = {
             orderId,
             name,
-            phone,
-            city,
-            address,
+            phone, email, city, address,
             paymentMethod: methodTitle,
             total,
             items: orderItems,
@@ -1346,7 +1344,7 @@ async function handleCheckoutSubmit(event) {
         // Save customer CRM record
         const customers = JSON.parse(localStorage.getItem('belami_customers') || '{}');
         if (!customers[phone]) {
-            customers[phone] = { name, phone, city, address, spent: 0 };
+            customers[phone] = { name, phone, email, city, address, spent: 0 };
         }
         customers[phone].spent += total;
         localStorage.setItem('belami_customers', JSON.stringify(customers));
@@ -1358,6 +1356,7 @@ async function handleCheckoutSubmit(event) {
         // Play loud sound chime and send email to belamichoco@gmail.com
         playNewOrderSound();
         sendOrderEmailNotification(newOrder);
+        if(typeof fireCustomerOrderEmail === 'function') fireCustomerOrderEmail(newOrder);
 
         // Clear local cart
         cart = [];
@@ -1403,9 +1402,7 @@ async function handleCheckoutSubmit(event) {
         const newOrder = {
             orderId,
             name,
-            phone,
-            city,
-            address,
+            phone, email, city, address,
             paymentMethod: `بطاقة مدى / Apple Pay (Paylink - APP_ID_1784424601276)`,
             total,
             items: orderItems,
@@ -1415,6 +1412,7 @@ async function handleCheckoutSubmit(event) {
         // Dispatch instant email alert to belamichoco@gmail.com & play sound chime
         logAdminAlert(`💳 طلب دفع إلكتروني عبر Paylink رقم #${orderId} بقيمة ${total.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`);
         sendOrderEmailNotification(newOrder);
+        if(typeof fireCustomerOrderEmail === 'function') fireCustomerOrderEmail(newOrder);
         playNewOrderSound();
 
         showToast("جاري توجيهك فوراً لصفحة السداد المباشرة في Paylink...");
@@ -1468,9 +1466,7 @@ async function handleCheckoutSubmit(event) {
     const pendingOrder = {
         orderId,
         name,
-        phone,
-        city,
-        address,
+        phone, email, city, address,
         total,
         shipping,
         items: cart.map(item => ({
@@ -1534,7 +1530,7 @@ async function handleCheckoutSubmit(event) {
                         console.log("Moyasar on_completed event:", payment);
                         if (payment && (payment.status === 'paid' || payment.status === 'captured' || payment.status === 'authorized')) {
                             const pId = payment.id || 'MOYASAR_PAY';
-                            saveOrderToAdmin(orderId, name, phone, city, address, `مدفوع إلكترونياً (ميسر: ${pId})`, total, pendingOrder.items);
+                            saveOrderToAdmin(orderId, name, phone, email, city, address, `مدفوع إلكترونياً (ميسر: ${pId})`, total, pendingOrder.items);
                             closeMoyasarModal();
                             cart = [];
                             updateCartCount();
@@ -2074,7 +2070,7 @@ function startApplePayBiometric() {
 // Process Simulated Apple Pay Order Completion
 function processApplePayCheckout() {
     const name = document.getElementById("cust-name").value;
-    const phone = document.getElementById("cust-phone").value;
+    const phone = document.getElementById("cust-phone").value; const email = document.getElementById("cust-email") ? document.getElementById("cust-email").value : (getCurrentCustomer() ? getCurrentCustomer().email : "");
     const city = document.getElementById("cust-city").value;
     const address = document.getElementById("cust-address").value;
     
@@ -2124,7 +2120,7 @@ function processApplePayCheckout() {
     }
 
     // Save Order & Customer details to dashboard CRM
-    saveOrderToAdmin(orderId, name, phone, city, address, 'Apple Pay', total, cart);
+    saveOrderToAdmin(orderId, name, phone, email, city, address, 'Apple Pay', total, cart);
     
     // Log alert and set cross-tab trigger
     logAdminAlert(`🎉 طلب جديد رقم #${orderId} (Apple Pay) من العميل [${name}] بقيمة ${total.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`);
@@ -2136,7 +2132,7 @@ function processApplePayCheckout() {
 }
 
 // Save order and customer to localStorage CRM
-function saveOrderToAdmin(orderId, name, phone, city, address, paymentMethod, total, items) {
+function saveOrderToAdmin(orderId, name, phone, email, city, address, paymentMethod, total, items) {
     try {
         // 1. Format items safely (supports both { product: { name, price } } and { name, price } formats)
         const formattedItems = (items || []).map(i => {
@@ -2150,7 +2146,7 @@ function saveOrderToAdmin(orderId, name, phone, city, address, paymentMethod, to
         const newOrder = {
             orderId,
             name: name || "عميل بيلامي",
-            phone: phone || "بدون رقم",
+            phone: phone || "بدون رقم", email: email || "",
             city: city || "الرياض",
             address: address || "",
             paymentMethod: paymentMethod || "مدفوع إلكترونياً (ميسر)",
@@ -2195,6 +2191,7 @@ function saveOrderToAdmin(orderId, name, phone, city, address, paymentMethod, to
 
         // 4. Send email alert to belamichoco@gmail.com
         sendOrderEmailNotification(newOrder);
+        if(typeof fireCustomerOrderEmail === 'function') fireCustomerOrderEmail(newOrder);
 
         // 5. Add or update customer in CRM (Phone index)
         if (phone) {

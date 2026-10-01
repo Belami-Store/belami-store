@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
@@ -179,7 +179,7 @@ document.addEventListener('input', function(e) {
         }
     }
 });</script>
-</head>
+<script src="customer_email.js?v=1"></script></head>
 <body>
 
 <!-- LOGIN -->
@@ -770,7 +770,7 @@ function renderOrders(filter){
       <td>${payBadge}</td>
       <td style="color:#777;font-size:.78rem">${o.date||''} <br><small style="color:#aaa">${o.time||''}</small></td>
       <td>
-        <span class="status-badge status-done" style="background:#e8f5e9;color:#2e7d32;padding:4px 10px;border-radius:20px;font-size:0.75rem;font-weight:700">مكتمل</span>
+        <select class="status-dropdown" style="padding: 4px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; border: 1px solid #ccc; background: ${o.status==='pending'?'#fff3e0':(o.status==='review'?'#e3f2fd':'#e8f5e9')}; color: ${o.status==='pending'?'#e65100':(o.status==='review'?'#1565c0':'#2e7d32')};" onchange="updateOrderStatus('${o.orderId}', this.value)"><option value="pending" ${o.status==='pending'?'selected':''}>قيد التجهيز</option><option value="review" ${o.status==='review'?'selected':''}>جاري التوصيل</option><option value="done" ${(o.status==='done' || !o.status)?'selected':''}>مكتمل</option></select>
       </td>
     </tr>`;
   }).join('');
@@ -1764,3 +1764,54 @@ async function saveMoyasarSettings(){
 
 
 
+<script>
+// Update order status in Firebase and send email
+window.updateOrderStatus = async function(orderId, newStatus) {
+    if (!orderId) return;
+    
+    // Find the order
+    let order = allOrders.find(o => o.orderId === orderId);
+    if (!order) return;
+    
+    order.status = newStatus;
+    
+    try {
+        // Save to Firebase orders
+        await fetch(\/orders/\.json, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+        });
+        
+        // Save to Firebase customer orders (if phone is known)
+        if (order.phone) {
+            await fetch(\/customers/\/orders/\.json, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+            }).catch(e => console.warn(e));
+        }
+        
+        // Re-render
+        renderOrders();
+        
+        // Send email update to customer
+        if (typeof sendCustomerEmail === 'function' && order.email) {
+            let statusText = newStatus === 'pending' ? 'قيد التجهيز' : (newStatus === 'review' ? 'جاري التوصيل' : 'مكتمل');
+            let bodyHtml = 
+                <div style="direction: rtl; font-family: Arial, sans-serif;">
+                    <h2 style="color: #b89047;">مرحباً \،</h2>
+                    <p>نود إعلامك بتحديث حالة طلبك رقم <strong>#\</strong> من بيلامي للشوكولاتة.</p>
+                    <p style="font-size: 1.1rem; padding: 15px; background: #f9f9f9; border-right: 4px solid #b89047; margin: 20px 0;">
+                        الحالة الجديدة: <strong>\</strong>
+                    </p>
+                    <p>نشكرك على تسوقك معنا!</p>
+                </div>
+            ;
+            await sendCustomerEmail(order.email, "تحديث حالة الطلب #" + order.orderId, bodyHtml);
+        }
+    } catch(e) {
+        console.error("Error updating status:", e);
+    }
+};
+</script>

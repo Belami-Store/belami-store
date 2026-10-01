@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta name="google-site-verification" content="google6c1551627c036fb0.html" />
@@ -42,7 +42,7 @@
     <script type="text/javascript" src="https://goSellJSLib.b-cdn.net/v2.0.4/js/gosell.js"></script>
 
 <style>.currency-icon { height: 16px !important; width: auto !important; vertical-align: -2px !important; margin-right: 3px !important; margin-left: 3px !important; display: inline-block !important; opacity: 0.9; }</style>
-</head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script></head>
 <body>
     <div class="bg-glow-1"></div>
     <div class="bg-glow-2"></div>
@@ -356,8 +356,7 @@
                                 <div class="form-row">
                                     <div class="form-group">
                                         <label class="form-label" for="cust-phone">رقم الجوال *</label>
-                                        <input type="tel" id="cust-phone" class="form-control" placeholder="05xxxxxxxx" pattern="05[0-9]{8}" required>
-                                    </div>
+                                        <input type="tel" id="cust-phone" class="form-control" placeholder="05xxxxxxxx" pattern="05[0-9]{8}" required></div><div class="form-group"><label class="form-label" for="cust-email">البريد الإلكتروني (للفاتورة) *</label><input type="email" id="cust-email" class="form-control" placeholder="example@email.com" required></div>
                                     <div class="form-group">
                                         <label class="form-label" for="cust-city">المدينة *</label>
                                         <input type="text" id="cust-city" class="form-control" placeholder="الرياض" required>
@@ -1359,7 +1358,7 @@
     </div>
 
     <!-- Custom Logic Script -->
-    <script src="customer_engine.js?v=1"></script>
+    <script src="customer_email.js?v=1"></script><script src="customer_engine.js?v=1"></script>
     <script src="app.js?v=15"></script>
 </body>
 </html>
