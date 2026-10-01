@@ -1244,21 +1244,14 @@ function startContinuousOrderAlarm(order) {
   }, 3000);
 
   // Show normal toast instead of blocking modal
-  toast('طلب جديد: #' + order.orderId);
+  toast('🔔 طلب جديد: #' + order.orderId);
   showOrderNotif(order);
 
   // Send desktop/mobile system notification
   sendSystemNotification(order);
-}, 2800);
-
-  // Show full-screen POS receipt modal
-  showPosOrderModal(order);
-
-  // Send desktop/mobile system notification (works even if minimized)
-  sendSystemNotification(order);
 }
 
-// إيقاف رنة التنبيه عند قبول واستلام الطلب
+// إيقاف التنبيه
 function stopOrderAlarm() {
   if (orderAlarmInterval) {
     clearInterval(orderAlarmInterval);
