@@ -1,4 +1,4 @@
-// --- CRM TRACKING ---
+﻿// --- CRM TRACKING ---
 async function trackVisitor() {
     if(sessionStorage.getItem('v_tracked')) return;
     try {
@@ -585,7 +585,11 @@ async function checkMoyasarCallback() { try {
             const couponText = coupon ? `\n*كود الخصم المطبق:* ${coupon}` : "";
             const msg = `مرحباً بيلامي للشوكولاتة، أود تأكيد طلبي المدفوع إلكترونياً:\n\n*رقم الطلب:* #${orderId}\n*رقم الدفع:* ${gatewayPaymentId}\n*الاسم:* ${name || ''}\n*رقم الجوال:* ${phone || ''}\n*العنوان:* ${city || ''}، ${address || ''}${couponText}\n*المجموع الإجمالي:* ${total.toFixed(2)} ر.س`;
             const waLink = `https://api.whatsapp.com/send?phone=966535671116&text=${encodeURIComponent(msg)}`;
-            const waBtn = document.getElementById("whatsapp-confirm-btn");
+            const printBtn = document.getElementById("success-print-btn");
+                            if (printBtn) {
+                                printBtn.onclick = function() { window.viewCustomerInvoice(orderId); };
+                            }
+                            const waBtn = document.getElementById("whatsapp-confirm-btn");
             if (waBtn) {
                 waBtn.href = waLink;
                 waBtn.style.display = "inline-flex";
@@ -1381,7 +1385,11 @@ async function handleCheckoutSubmit(event) {
         const couponText = appliedCouponCode ? `\n*كود الخصم المطبق:* ${appliedCouponCode} (خصم 5%)` : "";
         const msg = `مرحباً بيلامي للشوكولاتة، أود تأكيد طلبي عبر ${methodTitle}:\n\n*رقم الطلب:* #${orderId}\n*الاسم:* ${name}\n*رقم الجوال:* ${phone}\n*العنوان:* ${city}، ${address}${couponText}\n*المجموع الإجمالي:* ${total.toFixed(2)} ر.س\n\nيرجى تأكيد إرسال التفاصيل لتجهيز الشحنة.`;
         const waLink = `https://api.whatsapp.com/send?phone=966535671116&text=${encodeURIComponent(msg)}`;
-        const waBtn = document.getElementById("whatsapp-confirm-btn");
+        const printBtn = document.getElementById("success-print-btn");
+                            if (printBtn) {
+                                printBtn.onclick = function() { window.viewCustomerInvoice(orderId); };
+                            }
+                            const waBtn = document.getElementById("whatsapp-confirm-btn");
         if (waBtn) {
             waBtn.href = waLink;
             waBtn.style.display = "inline-flex";
@@ -1554,6 +1562,10 @@ async function handleCheckoutSubmit(event) {
 
                             const couponText = appliedCouponCode ? `\n*كود الخصم:* ${appliedCouponCode}` : "";
                             const msg = `مرحباً بيلامي للشوكولاتة، أود تأكيد طلبي المدفوع إلكترونياً:\n\n*رقم الطلب:* #${orderId}\n*رقم الدفع:* ${pId}\n*الاسم:* ${name}\n*رقم الجوال:* ${phone}\n*العنوان:* ${city}، ${address}${couponText}\n*المجموع:* ${total.toFixed(2)} ر.س`;
+                            const printBtn = document.getElementById("success-print-btn");
+                            if (printBtn) {
+                                printBtn.onclick = function() { window.viewCustomerInvoice(orderId); };
+                            }
                             const waBtn = document.getElementById("whatsapp-confirm-btn");
                             if (waBtn) {
                                 waBtn.href = `https://api.whatsapp.com/send?phone=966535671116&text=${encodeURIComponent(msg)}`;
@@ -2118,7 +2130,11 @@ function processApplePayCheckout() {
     const msg = `مرحباً بيلامي للشوكولاتة، أود تأكيد طلبي:\n\n*رقم الطلب:* #${orderId}\n*الاسم:* ${name}\n*رقم الجوال:* ${phone}\n*طريقة الاستلام:* ${shippingMethodName}\n*العنوان:* ${city}، ${address}${couponText}\n*طريقة الدفع:* Apple Pay\n\n*المنتجات:*${orderItemsText}\n\n*المجموع الإجمالي:* ${total.toFixed(2)} ر.س`;
     
     const waLink = `https://api.whatsapp.com/send?phone=966535671116&text=${encodeURIComponent(msg)}`;
-    const waBtn = document.getElementById("whatsapp-confirm-btn");
+    const printBtn = document.getElementById("success-print-btn");
+                            if (printBtn) {
+                                printBtn.onclick = function() { window.viewCustomerInvoice(orderId); };
+                            }
+                            const waBtn = document.getElementById("whatsapp-confirm-btn");
     if (waBtn) {
         waBtn.href = waLink;
         waBtn.style.display = "inline-flex";
@@ -3410,6 +3426,7 @@ document.addEventListener('input', function(e) {
         }
     }
 });
+
 
 
 
