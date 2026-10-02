@@ -514,9 +514,14 @@ async function loadCustomerPastOrders(phone) {
                             <strong style="font-size: 1.15rem; color: var(--primary); margin-right: 4px;">${total}</strong>
                             <img src="assets/sar.png" class="currency-icon" alt="SAR">
                         </div>
-                        <button onclick="reorderCustomerOrder('${order.orderId}')" class="btn" style="background: rgba(201,169,110,0.12); color: var(--primary); border: 1px solid rgba(201,169,110,0.4); padding: 7px 14px; border-radius: 10px; font-weight: 800; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                            <i class="fa-solid fa-rotate-left"></i> إعادة الطلب
-                        </button>
+                        <div style="display: flex; gap: 8px;">
+                            <button onclick="window.viewCustomerInvoice('${order.orderId}')" class="btn" style="background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; padding: 7px 14px; border-radius: 10px; font-weight: 800; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-file-pdf"></i> الفاتورة
+                            </button>
+                            <button onclick="reorderCustomerOrder('${order.orderId}')" class="btn" style="background: rgba(201,169,110,0.12); color: var(--primary); border: 1px solid rgba(201,169,110,0.4); padding: 7px 14px; border-radius: 10px; font-weight: 800; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-rotate-left"></i> إعادة الطلب
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -630,8 +635,21 @@ window.viewCustomerInvoice = async function(orderId) {
                 if (typeof window.generateInvoicePDF === 'function') {
                     const base64Url = await window.generateInvoicePDF(targetOrder);
                     if (base64Url) {
-                        const pdfWindow = window.open("");
-                        pdfWindow.document.write("<iframe width='100%' height='100%' src='" + base64Url + "'></iframe>");
+                        const byteString = atob(base64Url.split(',')[1]);
+                        const ab = new ArrayBuffer(byteString.length);
+                        const ia = new Uint8Array(ab);
+                        for (let i = 0; i < byteString.length; i++) {
+                            ia[i] = byteString.charCodeAt(i);
+                        }
+                        const blob = new Blob([ab], { type: 'application/pdf' });
+                        const blobUrl = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = blobUrl;
+                        link.download = `Invoice_${orderId}.pdf`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
                     } else {
                         showToast('عذراً، لا يمكن عرض الفاتورة حالياً على هذا المتصفح', 'error');
                     }
