@@ -179,7 +179,7 @@ document.addEventListener('input', function(e) {
         }
     }
 });</script>
-<script src="customer_email.js?v=9"></script></head>
+<script src="customer_email.js?v=10"></script></head>
 <body>
 
 <!-- LOGIN -->
@@ -217,6 +217,7 @@ document.addEventListener('input', function(e) {
     <div class="nav-item" onclick="showPage('customers')"><i class="fa-solid fa-users"></i> العملاء</div>
     <div class="nav-item" onclick="showPage('settings')"><i class="fa-solid fa-sliders"></i> إعدادات المتجر</div>
     <div class="nav-item" onclick="showPage('crm')"><i class="fa-solid fa-chart-line"></i> الإحصائيات و CRM</div>
+    <div class="nav-item" onclick="showPage('email')"><i class="fa-solid fa-envelope"></i> البريد الإلكتروني</div>
   </nav>
     <div class="sidebar-footer" style="display:flex; flex-direction:column; gap:12px;">
     <div id="sidebar-date-btn" onclick="toggleDateCalendar()" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:10px; color:#e8eef3; font-size:0.8rem; text-align:center; cursor:pointer; transition:0.2s; user-select:none;" title="اضغط للتبديل بين الهجري والميلادي">
@@ -515,6 +516,70 @@ document.addEventListener('input', function(e) {
     </div>
   </div>
 </div>
+
+  <!-- EMAIL PAGE -->
+  <div class="page-content" id="page-email">
+    <div class="card" style="min-height: 70vh;">
+      <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="card-title"><i class="fa-solid fa-envelope"></i> البريد الإلكتروني - صادر ووارد</div>
+        <button class="btn btn-primary" onclick="openComposeModal()"><i class="fa-solid fa-pen"></i> إنشاء رسالة جديدة</button>
+      </div>
+      <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+        <button class="btn btn-primary" id="btn-inbox" onclick="loadEmails('inbox')"><i class="fa-solid fa-inbox"></i> الوارد <span id="inbox-badge" style="background: red; color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.75rem; margin-right: 5px; display: none;">0</span></button>
+        <button class="btn btn-outline" id="btn-outbox" onclick="loadEmails('outbox')"><i class="fa-solid fa-paper-plane"></i> الصادر</button>
+        <button class="btn btn-outline" onclick="loadEmails(currentEmailBox)"><i class="fa-solid fa-rotate-right"></i> تحديث</button>
+      </div>
+      <div id="email-list-container">
+        <!-- Emails will be rendered here -->
+        <div style="text-align: center; padding: 40px; color: #8fa8c0;"><i class="fa-solid fa-envelope-open-text" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i><br>اختر صندوق البريد</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMAIL COMPOSE MODAL -->
+  <div class="modal-overlay" id="compose-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;">
+    <div class="modal-content" style="background: #fff; width: 92%; max-width: 600px; padding: 25px; border-radius: 16px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.25); transform: scale(0.9); transition: transform 0.3s ease; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div class="card-title" style="font-size: 1.2rem; font-weight: 700;"><i class="fa-solid fa-paper-plane"></i> إنشاء رسالة جديدة</div>
+        <button class="close-btn" onclick="closeComposeModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+      </div>
+      <div class="form-group">
+        <label>إلى (البريد الإلكتروني)</label>
+        <input type="email" id="compose-to" class="form-control" placeholder="customer@example.com">
+      </div>
+      <div class="form-group">
+        <label>الموضوع</label>
+        <input type="text" id="compose-subject" class="form-control" placeholder="عنوان الرسالة">
+      </div>
+      <div class="form-group">
+        <label>نص الرسالة</label>
+        <textarea id="compose-body" class="form-control" rows="6" placeholder="اكتب رسالتك هنا..."></textarea>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+        <button class="btn btn-outline" onclick="closeComposeModal()">إلغاء</button>
+        <button class="btn btn-primary" onclick="sendCustomEmail()" id="btn-send-email"><i class="fa-solid fa-paper-plane"></i> إرسال</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMAIL READ MODAL -->
+  <div class="modal-overlay" id="read-email-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;">
+    <div class="modal-content" style="background: #fff; width: 92%; max-width: 700px; padding: 25px; border-radius: 16px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.25); transform: scale(0.9); transition: transform 0.3s ease; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div class="card-title" id="read-email-subject" style="font-size: 1.2rem; font-weight: 700;">الموضوع</div>
+        <button class="close-btn" onclick="closeReadEmailModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+      </div>
+      <div style="padding: 10px 15px; background: #f8f9fa; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem;">
+        <div style="margin-bottom: 5px;"><strong>من/إلى: </strong><span id="read-email-contact"></span></div>
+        <div><strong>التاريخ: </strong><span id="read-email-date"></span></div>
+      </div>
+      <div id="read-email-body" style="min-height: 200px; max-height: 400px; overflow-y: auto; background: white; padding: 15px; border: 1px solid #eee; border-radius: 8px;"></div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+        <button class="btn btn-outline" onclick="closeReadEmailModal()">إغلاق</button>
+        <button class="btn btn-primary" onclick="replyEmail()" id="btn-reply-email"><i class="fa-solid fa-reply"></i> رد</button>
+      </div>
+    </div>
+  </div>
 
 <div id="toast"></div>
 
@@ -1856,4 +1921,186 @@ window.unlockAndStart = function() {
         setTimeout(() => overlay.remove(), 400);
     }
 };
+</script>
+
+<script>
+// --- EMAIL SYSTEM (WEBMAIL) ---
+let currentEmailBox = 'inbox';
+let allEmails = [];
+
+async function loadEmails(box) {
+  currentEmailBox = box;
+  document.getElementById('btn-inbox').classList.toggle('btn-primary', box === 'inbox');
+  document.getElementById('btn-inbox').classList.toggle('btn-outline', box !== 'inbox');
+  document.getElementById('btn-outbox').classList.toggle('btn-primary', box === 'outbox');
+  document.getElementById('btn-outbox').classList.toggle('btn-outline', box !== 'outbox');
+  
+  const container = document.getElementById('email-list-container');
+  container.innerHTML = '<div style="text-align: center; padding: 40px; color: #8fa8c0;"><i class="fa-solid fa-spinner fa-spin"></i> جاري التحميل...</div>';
+  
+  try {
+    const res = await fetch(`https://belami-store-default-rtdb.firebaseio.com/${box}.json`);
+    const data = await res.json();
+    allEmails = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
+    
+    allEmails.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+    
+    if (box === 'inbox') {
+      const unreadCount = allEmails.filter(e => !e.read).length;
+      const badge = document.getElementById('inbox-badge');
+      if (unreadCount > 0) {
+        badge.textContent = unreadCount;
+        badge.style.display = 'inline-block';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+    
+    renderEmailList();
+  } catch(e) {
+    container.innerHTML = '<div style="text-align: center; padding: 40px; color: red;">خطأ في تحميل البريد</div>';
+  }
+}
+
+function renderEmailList() {
+  const container = document.getElementById('email-list-container');
+  if (allEmails.length === 0) {
+    container.innerHTML = `<div style="text-align: center; padding: 40px; color: #8fa8c0;"><i class="fa-solid fa-envelope-open" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i><br>صندوق ${currentEmailBox === 'inbox' ? 'الوارد' : 'الصادر'} فارغ</div>`;
+    return;
+  }
+  
+  let html = '<div style="display: flex; flex-direction: column; gap: 10px;">';
+  allEmails.forEach(email => {
+    const isUnread = currentEmailBox === 'inbox' && !email.read;
+    const dateStr = email.date ? new Date(email.date).toLocaleString('ar-SA') : '';
+    const contact = currentEmailBox === 'inbox' ? email.from : email.to;
+    const subjectStr = email.subject || 'بدون موضوع';
+    
+    html += `
+      <div onclick="openReadEmailModal('${email.id}')" style="background: ${isUnread ? '#fff' : '#f8f9fa'}; border: 1px solid ${isUnread ? '#c9a96e' : '#eee'}; padding: 15px; border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s;">
+        <div style="flex: 1; overflow: hidden;">
+          <div style="font-weight: ${isUnread ? '800' : '600'}; color: var(--primary); margin-bottom: 5px; font-size: 0.95rem;">${subjectStr}</div>
+          <div style="color: #666; font-size: 0.85rem; display: flex; gap: 10px; align-items: center;">
+            <span><i class="fa-solid ${currentEmailBox === 'inbox' ? 'fa-user' : 'fa-paper-plane'}"></i> ${contact}</span>
+          </div>
+        </div>
+        <div style="font-size: 0.8rem; color: #999; white-space: nowrap; margin-right: 15px;">
+          ${dateStr}
+          ${isUnread ? '<div style="width: 10px; height: 10px; background: red; border-radius: 50%; display: inline-block; margin-right: 8px;"></div>' : ''}
+        </div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+async function openReadEmailModal(id) {
+  const email = allEmails.find(e => e.id === id);
+  if (!email) return;
+  
+  document.getElementById('read-email-subject').textContent = email.subject || 'بدون موضوع';
+  document.getElementById('read-email-contact').textContent = currentEmailBox === 'inbox' ? email.from : email.to;
+  document.getElementById('read-email-date').textContent = email.date ? new Date(email.date).toLocaleString('ar-SA') : '';
+  
+  const bodyContainer = document.getElementById('read-email-body');
+  bodyContainer.innerHTML = email.html || email.text || '<span style="color: #999;">لا يوجد نص</span>';
+  
+  document.getElementById('read-email-modal').style.display = 'flex';
+  document.getElementById('read-email-modal').style.opacity = '1';
+  
+  if (currentEmailBox === 'inbox' && !email.read) {
+    email.read = true;
+    try {
+      await fetch(`https://belami-store-default-rtdb.firebaseio.com/inbox/${id}.json`, {
+        method: 'PATCH',
+        body: JSON.stringify({ read: true })
+      });
+      const unreadCount = allEmails.filter(e => !e.read).length;
+      const badge = document.getElementById('inbox-badge');
+      if (unreadCount > 0) {
+        badge.textContent = unreadCount;
+        badge.style.display = 'inline-block';
+      } else {
+        badge.style.display = 'none';
+      }
+      renderEmailList();
+    } catch(e) {}
+  }
+}
+
+function closeReadEmailModal() {
+  document.getElementById('read-email-modal').style.opacity = '0';
+  setTimeout(() => document.getElementById('read-email-modal').style.display = 'none', 300);
+}
+
+function replyEmail() {
+  const contact = document.getElementById('read-email-contact').textContent;
+  const subject = document.getElementById('read-email-subject').textContent;
+  closeReadEmailModal();
+  openComposeModal(contact, `رد: ${subject}`);
+}
+
+function openComposeModal(to = '', subject = '') {
+  document.getElementById('compose-to').value = to;
+  document.getElementById('compose-subject').value = subject;
+  document.getElementById('compose-body').value = '';
+  document.getElementById('compose-modal').style.display = 'flex';
+  document.getElementById('compose-modal').style.opacity = '1';
+}
+
+function closeComposeModal() {
+  document.getElementById('compose-modal').style.opacity = '0';
+  setTimeout(() => document.getElementById('compose-modal').style.display = 'none', 300);
+}
+
+async function sendCustomEmail() {
+  const to = document.getElementById('compose-to').value.trim();
+  const subject = document.getElementById('compose-subject').value.trim();
+  const body = document.getElementById('compose-body').value.trim();
+  
+  if (!to || !subject || !body) {
+    return toast('يرجى تعبئة جميع الحقول');
+  }
+  
+  const btn = document.getElementById('btn-send-email');
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الإرسال...';
+  btn.disabled = true;
+  
+  try {
+    const payload = {
+      to: to,
+      subject: subject,
+      body: body.replace(/\n/g, '<br>')
+    };
+    
+    // Send via Google Apps Script
+    const res = await fetch('https://script.google.com/macros/s/AKfycbxmGeVP0tq9V00EHwLW-32EdfD6fgMNGYBwKrkSY4pnzr7dXWVbr6sPfLOrj4au2F5i/exec', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    
+    // Save to Outbox
+    await fetch('https://belami-store-default-rtdb.firebaseio.com/outbox.json', {
+      method: 'POST',
+      body: JSON.stringify({
+        to: to,
+        subject: subject,
+        html: payload.body,
+        date: new Date().toISOString()
+      })
+    });
+    
+    toast('تم إرسال الرسالة بنجاح!');
+    closeComposeModal();
+    if (currentEmailBox === 'outbox') loadEmails('outbox');
+    
+  } catch (e) {
+    toast('فشل إرسال الرسالة');
+  }
+  
+  btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> إرسال';
+  btn.disabled = false;
+}
+setTimeout(() => { if (typeof loadEmails === 'function') loadEmails('inbox'); }, 3000);
 </script>
