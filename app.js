@@ -505,7 +505,7 @@ async function checkMoyasarCallback() { try {
         let city = urlParams.get('city');
         let address = urlParams.get('address');
         let total = parseFloat(urlParams.get('total') || '0');
-        let email = urlParams.get('email') || '';
+        let email = safeDec(urlParams.get('email')) || '';
         let coupon = urlParams.get('coupon') || '';
 
         // Check if we have pending order saved in localStorage as a backup
@@ -3426,6 +3426,7 @@ document.addEventListener('input', function(e) {
         }
     }
 });
+
 
 
 
