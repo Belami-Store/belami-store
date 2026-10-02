@@ -500,10 +500,11 @@ async function checkMoyasarCallback() { try {
         const status = urlParams.get('status');
         const paymentId = urlParams.get('id') || urlParams.get('tap_id') || urlParams.get('charge_id') || 'PAID';
         let orderId = urlParams.get('orderId');
-        let name = urlParams.get('name');
-        let phone = urlParams.get('phone');
-        let city = urlParams.get('city');
-        let address = urlParams.get('address');
+        function safeDec(val) { try { return val ? decodeURIComponent(val) : val; } catch(e) { return val; } }
+        let name = safeDec(urlParams.get('name'));
+        let phone = safeDec(urlParams.get('phone'));
+        let city = safeDec(urlParams.get('city'));
+        let address = safeDec(urlParams.get('address'));
         let total = parseFloat(urlParams.get('total') || '0');
         let email = safeDec(urlParams.get('email')) || '';
         let coupon = urlParams.get('coupon') || '';
@@ -3426,6 +3427,8 @@ document.addEventListener('input', function(e) {
         }
     }
 });
+
+
 
 
 
