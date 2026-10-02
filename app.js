@@ -297,7 +297,7 @@ const defaultProducts = [
 let products = [];
 let cart = [];
 let activeCategory = 'all';
-let currentShippingCost = 35;
+let currentShippingCost = 40;
 
 let reviewsList = [
     { name: "أمل عبدالله", text: "ما شاء الله الشوكولاتة جداً رائعة ولذيذة، والخدمة سريعة والتوصيل في الوقت المحدد. سأكرر الطلب بالتأكيد.", stars: 5, date: "عميل موثوق" },
@@ -312,7 +312,7 @@ const DB_BASE_URL = `https://kvdb.io/buckets/${DB_BUCKET}/keys`;
 let storeSettings = {
     name: "بيلامي شوكليت",
     logo: "assets/logo.png",
-    shippingCost: 35,
+    shippingCost: 40,
     pickupEnabled: true,
     categories: [
         { id: "boxes", name: "بوكسات" },
@@ -936,7 +936,11 @@ function navigateTo(view) {
 
     // Scroll to top safely
     try {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (view === 'success') {
+            window.scrollTo(0, 0);
+        } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     } catch(e) {
         window.scrollTo(0, 0);
     }
@@ -1588,6 +1592,7 @@ function closeMoyasarModal() {
     const modal = document.getElementById("moyasar-modal");
     if (modal) {
         modal.style.opacity = "0";
+        modal.style.pointerEvents = "none";
         modal.querySelector(".moyasar-modal-content").style.transform = "scale(0.9)";
         setTimeout(() => {
             modal.style.display = "none";
@@ -2024,6 +2029,7 @@ function closeApplePaySimulation() {
     if (overlay && sheet) {
         sheet.style.transform = "translateY(100%)";
         overlay.style.opacity = "0";
+        overlay.style.pointerEvents = "none";
         setTimeout(() => {
             overlay.style.display = "none";
         }, 300);
