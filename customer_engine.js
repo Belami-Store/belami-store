@@ -1,4 +1,4 @@
-
+﻿
 // =========================================================================
 // 👤 CUSTOMER ACCOUNTS, CLOUD CART & PAST ORDERS ENGINE (بيلامي شوكليت)
 // =========================================================================
@@ -610,3 +610,37 @@ function initCartAndCustomer() {
         restoreCustomerCloudCart(cust.phone);
     }
 }
+// 14. View Customer Invoice PDF
+window.viewCustomerInvoice = async function(orderId) {
+    if (!orderId) return;
+    showToast('جاري إنشاء الفاتورة...', 'info');
+    try {
+        const res = await fetch(${FIREBASE_DB_URL}/orders.json);
+        if (res.ok) {
+            const allOrders = await res.json();
+            let targetOrder = null;
+            if (allOrders) {
+                Object.values(allOrders).forEach(o => {
+                    if (o && o.id === orderId || o.orderId === orderId) {
+                        targetOrder = o;
+                    }
+                });
+            }
+            if (targetOrder) {
+                if (typeof window.generateInvoicePDF === 'function') {
+                    const base64Url = await window.generateInvoicePDF(targetOrder);
+                    if (base64Url) {
+                        const pdfWindow = window.open("");
+                        pdfWindow.document.write(\<iframe width='100%' height='100%' src='\'></iframe>\);
+                    } else {
+                        showToast('عذراً، لا يمكن عرض الفاتورة حالياً على هذا المتصفح', 'error');
+                    }
+                }
+            } else {
+                showToast('لم يتم العثور على تفاصيل الطلب', 'error');
+            }
+        }
+    } catch(e) {
+        showToast('حدث خطأ أثناء جلب الفاتورة', 'error');
+    }
+};

@@ -2196,7 +2196,7 @@ function saveOrderToAdmin(orderId, name, phone, email, city, address, paymentMet
         // 4. Send email alert to belamichoco@gmail.com
         playNewOrderSound();
         sendOrderEmailNotification(newOrder);
-        if(typeof fireCustomerOrderEmail === 'function') fireCustomerOrderEmail(newOrder);
+        if(typeof fireCustomerOrderEmail === 'function') fireCustomerOrderEmail(newOrder).catch(e => console.error("Email Error:", e));
 
         // 5. Add or update customer in CRM (Phone index)
         if (phone) {

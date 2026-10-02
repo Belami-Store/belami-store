@@ -23,7 +23,7 @@ window.generateInvoicePDF = async function(orderData) {
     invoiceDiv.innerHTML = `
         <div style="text-align: center; margin-bottom: 20px;">
             <h1 style="color: #b89047; margin: 0;">بيلامي للشوكولاتة</h1>
-            <p style="color: #666; margin: 5px 0;">فاتورة ضريبية مبسطة</p>
+            <p style="color: #666; margin: 5px 0;">فاتورة طلب</p>
         </div>
         <div style="margin-bottom: 20px;">
             <p><strong>رقم الطلب:</strong> #${orderId}</p>
@@ -49,12 +49,12 @@ window.generateInvoicePDF = async function(orderData) {
     // Attach to DOM temporarily for html2pdf to render properly on mobile
     const wrapperDiv = document.createElement("div");
     wrapperDiv.style.position = "absolute";
-    wrapperDiv.style.top = "0";
-    wrapperDiv.style.left = "0";
-    wrapperDiv.style.width = "1px";
-    wrapperDiv.style.height = "1px";
-    wrapperDiv.style.overflow = "hidden";
-    wrapperDiv.style.opacity = "0";
+    wrapperDiv.style.top = "-9999px";
+    wrapperDiv.style.left = "-9999px";
+    wrapperDiv.style.width = "800px"; // Provide enough width for PDF rendering
+    wrapperDiv.style.height = "auto";
+    wrapperDiv.style.overflow = "visible";
+    wrapperDiv.style.opacity = "1";
     wrapperDiv.style.pointerEvents = "none";
     wrapperDiv.appendChild(invoiceDiv);
     document.body.appendChild(wrapperDiv);
