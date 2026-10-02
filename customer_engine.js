@@ -1,4 +1,4 @@
-﻿
+
 // =========================================================================
 // 👤 CUSTOMER ACCOUNTS, CLOUD CART & PAST ORDERS ENGINE (بيلامي شوكليت)
 // =========================================================================
@@ -615,7 +615,7 @@ window.viewCustomerInvoice = async function(orderId) {
     if (!orderId) return;
     showToast('جاري إنشاء الفاتورة...', 'info');
     try {
-        const res = await fetch(${FIREBASE_DB_URL}/orders.json);
+        const res = await fetch(`${FIREBASE_DB_URL}/orders.json`);
         if (res.ok) {
             const allOrders = await res.json();
             let targetOrder = null;
