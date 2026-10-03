@@ -1,4 +1,4 @@
-﻿// --- CRM TRACKING ---
+// --- CRM TRACKING ---
 async function trackVisitor() {
     if(sessionStorage.getItem('v_tracked')) return;
     try {
@@ -535,6 +535,7 @@ async function checkMoyasarCallback() { try {
         if (isMoyasarSuccess || isTapSuccess) {
             const gatewayName = isMoyasarSuccess ? 'ميسر' : 'تاب (Tap)';
             const gatewayPaymentId = paymentId;
+            let paymentMethodText = `مدفوع إلكترونياً (${gatewayName})`;
             
             // Build items
             let orderItems = [];
@@ -556,7 +557,7 @@ async function checkMoyasarCallback() { try {
             }
 
             // Save order safely
-            saveOrderToAdmin(orderId, name, phone, email, city, address, `مدفوع إلكترونياً (${gatewayName}: ${gatewayPaymentId})`, total, orderItems);
+            saveOrderToAdmin(orderId, name, phone, email, city, address, paymentMethodText, total, orderItems);
 
             // Log administrative alert
             logAdminAlert(`🎉 طلب جديد رقم #${orderId} مدفوع إلكترونياً بقيمة ${total.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`);
@@ -1542,7 +1543,19 @@ async function handleCheckoutSubmit(event) {
                         console.log("Moyasar on_completed event:", payment);
                         if (payment && (payment.status === 'paid' || payment.status === 'captured' || payment.status === 'authorized')) {
                             const pId = payment.id || 'MOYASAR_PAY';
-                            saveOrderToAdmin(orderId, name, phone, email, city, address, `مدفوع إلكترونياً (ميسر: ${pId})`, total, pendingOrder.items);
+                            let paymentMethodText = "مدفوع إلكترونياً (ميسر)";
+                            if (payment && payment.source) {
+                                if (payment.source.type === 'applepay') {
+                                    paymentMethodText = "أبل باي (Apple Pay)";
+                                } else if (payment.source.company) {
+                                    let comp = payment.source.company.toLowerCase();
+                                    if (comp === 'mada') paymentMethodText = "بطاقة مدى (Mada)";
+                                    else if (comp === 'visa') paymentMethodText = "بطاقة فيزا (Visa)";
+                                    else if (comp === 'master') paymentMethodText = "ماستركارد (MasterCard)";
+                                    else paymentMethodText = `بطاقة ائتمانية (${payment.source.company})`;
+                                }
+                            }
+                            saveOrderToAdmin(orderId, name, phone, email, city, address, paymentMethodText, total, pendingOrder.items);
                             closeMoyasarModal();
                             cart = [];
                             updateCartCount();
@@ -1557,7 +1570,7 @@ async function handleCheckoutSubmit(event) {
                             const rAddr = document.getElementById("receipt-address");
                             if (rAddr) rAddr.textContent = `${city || 'الرياض'}، ${address || ''}`;
                             const rPay = document.getElementById("receipt-payment");
-                            if (rPay) rPay.textContent = `مدفوع إلكترونياً (ميسر: ${pId})`;
+                            if (rPay) rPay.textContent = paymentMethodText;
                             const rTotal = document.getElementById("receipt-total");
                             if (rTotal) rTotal.innerHTML = `${total.toFixed(2)} <img src='assets/sar.png' class='currency-icon' alt='SAR'>`;
 
