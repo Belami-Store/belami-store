@@ -809,7 +809,10 @@ function renderProducts() {
                 </h3>
                 <p class="product-desc">${p.description}</p>
                 <div class="product-footer">
-                    <span class="product-price">${p.price} <span><img src='assets/sar.png' class='currency-icon' alt='SAR'></span></span>
+                    <span class="product-price">
+                    ${p.originalPrice ? `<span style="text-decoration: line-through; color: #a1a1aa; font-size: 0.8rem; margin-right: 5px;">${p.originalPrice}</span> <span style="color: #ef4444;">${p.price}</span>` : `${p.price}`}
+                    <span><img src='assets/sar.png' class='currency-icon' alt='SAR'></span>
+                </span>
                     ${buttonHtml}
                 </div>
             </div>
