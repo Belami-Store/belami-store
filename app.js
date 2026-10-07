@@ -7,9 +7,14 @@ if (!visitorSessionId) {
 
 setInterval(() => {
     if (typeof FIREBASE_DB_URL !== 'undefined') {
+        let cust = null;
+        if (typeof getCurrentCustomer === 'function') {
+            const c = getCurrentCustomer();
+            if (c && c.phone) cust = { name: c.name, phone: c.phone };
+        }
         fetch(`${FIREBASE_DB_URL}/live_visitors/${visitorSessionId}.json`, {
             method: 'PUT',
-            body: JSON.stringify({ time: Date.now() })
+            body: JSON.stringify({ time: Date.now(), customer: cust })
         }).catch(()=>{});
     }
 }, 20000); // Heartbeat every 20s
@@ -1067,9 +1072,14 @@ function addToCart(productId, quantity = 1, deliveryDate = '', customNote = '', 
     
     // Sync abandoned cart to cloud
     if (typeof FIREBASE_DB_URL !== 'undefined') {
+        let cust = null;
+        if (typeof getCurrentCustomer === 'function') {
+            const c = getCurrentCustomer();
+            if (c && c.phone) cust = { name: c.name, phone: c.phone };
+        }
         fetch(`${FIREBASE_DB_URL}/abandoned_carts/${visitorSessionId}.json`, {
             method: 'PUT',
-            body: JSON.stringify({ cart: cart, time: Date.now() })
+            body: JSON.stringify({ cart: cart, time: Date.now(), customer: cust })
         }).catch(()=>{});
     }
 

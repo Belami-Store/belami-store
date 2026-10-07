@@ -427,6 +427,15 @@ document.addEventListener('input', function(e) {
 
   <div class="page-content" id="page-crm">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;flex-wrap:wrap;">
+      <div class="card" style="grid-column: 1 / -1;">
+        <div class="card-header"><div class="card-title"><i class="fa-solid fa-basket-shopping"></i> السلات المتروكة (مباشر)</div></div>
+        <div style="overflow-x:auto;">
+          <table class="orders-table">
+            <thead><tr><th>العميل</th><th>محتويات السلة</th><th>المجموع</th><th>الوقت</th></tr></thead>
+            <tbody id="crm-abandoned-tbody"></tbody>
+          </table>
+        </div>
+      </div>
       <div class="card">
         <div class="card-header"><div class="card-title"><i class="fa-solid fa-eye"></i> المنتجات الأكثر مشاهدة</div></div>
         <div style="overflow-x:auto;">
@@ -1097,7 +1106,24 @@ async function renderCRM() {
   
   document.getElementById('crm-views-tbody').innerHTML = viewArray.length ? viewArray.map(v=>`
     <tr>
-      <td style="font-weight:700;">${v.name}</td>
+      <td style="font-weight:700;">${v.name
+  // Load Abandoned Carts
+  let abandoned = await dbGet('abandoned_carts') || {};
+  let abArray = Object.values(abandoned).filter(x => x && x.cart && x.cart.length > 0).sort((a,b) => b.time - a.time);
+  
+  document.getElementById('crm-abandoned-tbody').innerHTML = abArray.length ? abArray.map(ab => {
+      let custHtml = ab.customer ? `<b>${ab.customer.name}</b><br><a href="https://wa.me/966${ab.customer.phone.replace(/^0+/, '')}" target="_blank" style="color:#25D366;text-decoration:none;"><i class="fa-brands fa-whatsapp"></i> ${ab.customer.phone}</a>` : `<span style="color:#aaa">زائر مجهول</span>`;
+      let itemsHtml = ab.cart.map(c => `<span style="display:inline-block;background:#f3f4f6;color:#333;padding:2px 6px;border-radius:4px;margin:2px;font-size:0.75rem;">${c.quantity}x ${c.product.name}</span>`).join('');
+      let total = ab.cart.reduce((sum, c) => sum + ((c.product.price + (c.printMessage ? 5 : 0)) * c.quantity), 0);
+      let timeStr = new Date(ab.time).toLocaleTimeString('ar-SA');
+      return `<tr>
+        <td>${custHtml}</td>
+        <td style="line-height: 1.8;">${itemsHtml}</td>
+        <td style="font-weight:bold;color:#ef4444">${total} <img src='assets/sar.png' class='currency-icon' alt='SAR'></td>
+        <td style="color:#8fa8c0;font-size:0.8rem">${timeStr}</td>
+      </tr>`;
+  }).join('') : '<tr><td colspan="4" style="text-align:center;padding:20px;color:#8fa8c0;">لا توجد سلات متروكة حالياً</td></tr>';
+}</td>
       <td style="color:#c9a96e;font-weight:900;">${v.count} 👀</td>
     </tr>
   `).join('') : '<tr><td colspan="2" style="text-align:center;padding:20px;color:#8fa8c0;">لا توجد مشاهدات</td></tr>';
