@@ -1,8 +1,13 @@
 // --- CRM TRACKING ---
-let visitorSessionId = sessionStorage.getItem('v_session_id');
-if (!visitorSessionId) {
+let visitorSessionId = 'v_' + Date.now();
+try {
+    visitorSessionId = sessionStorage.getItem('v_session_id');
+    if (!visitorSessionId) {
+        visitorSessionId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        sessionStorage.setItem('v_session_id', visitorSessionId);
+    }
+} catch(e) {
     visitorSessionId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-    sessionStorage.setItem('v_session_id', visitorSessionId);
 }
 
 setInterval(() => {
@@ -20,7 +25,9 @@ setInterval(() => {
 }, 20000); // Heartbeat every 20s
 
 async function trackVisitor() {
-    if(sessionStorage.getItem('v_tracked')) return;
+    try {
+        if(sessionStorage.getItem('v_tracked')) return;
+    } catch(e){}
     try {
         const res = await fetch('https://ipapi.co/json/');
         const data = await res.json();
@@ -751,8 +758,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // Track visits
-    if (!sessionStorage.getItem('belami_session_active')) {
-        sessionStorage.setItem('belami_session_active', 'true');
+    try {
+        if (!sessionStorage.getItem('belami_session_active')) {
+            sessionStorage.setItem('belami_session_active', 'true');
         
         let visits = parseInt(localStorage.getItem('belami_visits') || '0');
         localStorage.setItem('belami_visits', (visits + 1).toString());
