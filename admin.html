@@ -1095,7 +1095,7 @@ async function renderCRM() {
       <td>${v.country}</td>
       <td style="font-size:0.75rem;color:#8fa8c0;">${v.time}</td>
     </tr>
-  `).join('') : '<tr><td colspan="4" style="text-align:center;padding:20px;color:#8fa8c0;">لا يوجد زوار حالياً</td></tr>';
+  `).join('') : '<tr><td colspan="4" style="text-align:center;padding:20px;color:#8fa8c0;">لا توجد زيارات مسجلة</td></tr>';
 
   // Load Views
   let views = await dbGet('crm_views') || {};
@@ -1127,12 +1127,7 @@ async function renderCRM() {
         <td style="color:#8fa8c0;font-size:0.8rem">${timeStr}</td>
       </tr>`;
   }).join('') : '<tr><td colspan="4" style="text-align:center;padding:20px;color:#8fa8c0;">لا توجد سلات متروكة حالياً</td></tr>';
-}</td>
-      <td style="color:#c9a96e;font-weight:900;">${v.count} 👀</td>
-    </tr>
-  `).join('') : '<tr><td colspan="2" style="text-align:center;padding:20px;color:#8fa8c0;">لا توجد مشاهدات</td></tr>';
 }
-
 
 async function saveCredentials() {
   const u = document.getElementById('setting-user').value.trim();
