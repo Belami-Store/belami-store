@@ -2320,11 +2320,18 @@ function logAdminAlert(message) {
         const newAlert = {
             id: Date.now() + '-' + Math.floor(Math.random() * 100),
             message,
-            time: new Date().toLocaleTimeString()
+            time: new Date().toLocaleTimeString('ar-SA')
         };
         alerts.unshift(newAlert);
         if (alerts.length > 50) alerts.pop();
         localStorage.setItem('belami_alerts', JSON.stringify(alerts));
+        
+        if (typeof FIREBASE_DB_URL !== 'undefined') {
+            fetch(`${FIREBASE_DB_URL}/alerts.json`, {
+                method: 'PUT',
+                body: JSON.stringify(alerts)
+            }).catch(()=>{});
+        }
     } catch(e) {}
 }
 

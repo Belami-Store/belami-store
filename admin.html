@@ -768,13 +768,15 @@ async function renderHome(){
   let liveCount = 0;
   let abandonedCount = 0;
   try {
+      let cloudVisits = parseInt(await dbGet('visits') || '0');
       const vis = await dbGet('crm_visitors');
-      if (vis && Array.isArray(vis)) totalVisits = vis.length;
+      if (vis && Array.isArray(vis)) totalVisits = Math.max(cloudVisits, vis.length);
+      else totalVisits = cloudVisits;
       
       const live = await dbGet('live_visitors');
       if (live) {
           const now = Date.now();
-          liveCount = Object.values(live).filter(l => l && l.time && (now - l.time < 60000)).length;
+          liveCount = Object.values(live).filter(l => l && l.time && (Math.abs(now - l.time) < 120000)).length;
       }
 
       const abandoned = await dbGet('abandoned_carts');
@@ -1563,6 +1565,17 @@ async function checkNewOrders(){
       const badge = document.getElementById('orders-count-badge');
       if (badge) badge.textContent = `${allOrders.length} طلب`;
     }
+    
+    // Poll Cloud Alerts
+    const alertRes = await fetch(`${FIREBASE_DB_URL}/alerts.json?t=${Date.now()}`);
+    if (alertRes.ok) {
+        const cloudAlerts = await alertRes.json();
+        if (cloudAlerts && Array.isArray(cloudAlerts) && cloudAlerts.length > 0) {
+            localStorage.setItem('belami_alerts', JSON.stringify(cloudAlerts));
+            if (typeof renderAlerts === 'function') renderAlerts();
+        }
+    }
+    
   }catch(e){
     console.warn('Real-time order polling error:', e);
   }
