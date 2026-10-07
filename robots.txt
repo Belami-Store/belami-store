@@ -1,3 +1,4 @@
 User-agent: *
 Allow: /
-Sitemap: https://belami-sa.netlify.app/sitemap.xml
+
+Sitemap: https://belamisa.com/sitemap.xml
