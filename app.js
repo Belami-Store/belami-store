@@ -1,4 +1,19 @@
 // --- CRM TRACKING ---
+let visitorSessionId = sessionStorage.getItem('v_session_id');
+if (!visitorSessionId) {
+    visitorSessionId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+    sessionStorage.setItem('v_session_id', visitorSessionId);
+}
+
+setInterval(() => {
+    if (typeof FIREBASE_DB_URL !== 'undefined') {
+        fetch(`${FIREBASE_DB_URL}/live_visitors/${visitorSessionId}.json`, {
+            method: 'PUT',
+            body: JSON.stringify({ time: Date.now() })
+        }).catch(()=>{});
+    }
+}, 20000); // Heartbeat every 20s
+
 async function trackVisitor() {
     if(sessionStorage.getItem('v_tracked')) return;
     try {
@@ -12,7 +27,7 @@ async function trackVisitor() {
             country: data.country_name || 'Unknown',
             time: new Date().toLocaleString('en-GB')
         });
-        if(visitors.length > 200) visitors = visitors.slice(-200);
+        if(visitors.length > 500) visitors = visitors.slice(-500);
         await dbSave('crm_visitors', visitors);
         sessionStorage.setItem('v_tracked', '1');
     } catch(e) { console.log(e); }
@@ -1049,6 +1064,15 @@ function addToCart(productId, quantity = 1, deliveryDate = '', customNote = '', 
     localStorage.setItem('belami_cart_add_trigger', Date.now().toString());
     
     // Auto-open cart drawer
+    
+    // Sync abandoned cart to cloud
+    if (typeof FIREBASE_DB_URL !== 'undefined') {
+        fetch(`${FIREBASE_DB_URL}/abandoned_carts/${visitorSessionId}.json`, {
+            method: 'PUT',
+            body: JSON.stringify({ cart: cart, time: Date.now() })
+        }).catch(()=>{});
+    }
+
     toggleCart(true);
     
     // Dynamic mini anim on bag button
