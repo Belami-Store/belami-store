@@ -1106,7 +1106,11 @@ async function renderCRM() {
   
   document.getElementById('crm-views-tbody').innerHTML = viewArray.length ? viewArray.map(v=>`
     <tr>
-      <td style="font-weight:700;">${v.name
+      <td style="font-weight:700;">${v.name}</td>
+      <td style="color:#c9a96e;font-weight:900;">${v.count} 👁️</td>
+    </tr>
+  `).join('') : '<tr><td colspan="2" style="text-align:center;padding:20px;color:#8fa8c0;">لا توجد مشاهدات</td></tr>';
+
   // Load Abandoned Carts
   let abandoned = await dbGet('abandoned_carts') || {};
   let abArray = Object.values(abandoned).filter(x => x && x.cart && x.cart.length > 0).sort((a,b) => b.time - a.time);
