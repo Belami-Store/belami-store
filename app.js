@@ -778,7 +778,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         logAdminAlert(`👀 زائر جديد تصفح المتجر الآن`);
         localStorage.setItem('belami_alerts', localStorage.getItem('belami_alerts')); // trigger storage sync
-    }
+        }
+    } catch(e) {}
 
     // Sticky Header Scroll Effect
     window.addEventListener("scroll", () => {
