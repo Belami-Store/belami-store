@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
@@ -750,14 +750,38 @@ function applyPermissions() {
 
 
 // ── HOME ──
-function renderHome(){
+async function renderHome(){
   const totalSales = (allOrders || []).reduce((s,o)=>s+(parseFloat(o.total)||0),0);
+  
+  // Fetch advanced stats
+  let totalVisits = 0;
+  let liveCount = 0;
+  let abandonedCount = 0;
+  try {
+      const vis = await dbGet('crm_visitors');
+      if (vis && Array.isArray(vis)) totalVisits = vis.length;
+      
+      const live = await dbGet('live_visitors');
+      if (live) {
+          const now = Date.now();
+          liveCount = Object.values(live).filter(l => l && l.time && (now - l.time < 60000)).length;
+      }
+
+      const abandoned = await dbGet('abandoned_carts');
+      if (abandoned) {
+          abandonedCount = Object.keys(abandoned).length;
+      }
+  } catch(e) {}
+
   const stats = [
     {icon:'fa-bag-shopping',bg:'#e3f2fd',color:'#1a7fbd',num:(allOrders||[]).length,label:'إجمالي الطلبات'},
-    {icon:'fa-circle-dollar-to-slot',bg:'#e8f5e9',color:'#2e7d32',num:totalSales.toFixed(2)+' <img src="assets/sar.png" class="currency-icon" alt="SAR">',label:'إجمالي المبيعات'},
-    {icon:'fa-users',bg:'#f3e5f5',color:'#6a1b9a',num:Object.keys(allCustomers||{}).length,label:'إجمالي العملاء'},
-    {icon:'fa-box-open',bg:'#fff3e0',color:'#e65100',num:(allProducts||[]).length,label:'إجمالي المنتجات'},
+    {icon:'fa-circle-dollar-to-slot',bg:'#e8f5e9',color:'#2e7d32',num:totalSales.toFixed(2)+' <img src="assets/sar.png" class="currency-icon" alt="SAR">',label:'المبيعات'},
+    {icon:'fa-users',bg:'#f3e5f5',color:'#6a1b9a',num:Object.keys(allCustomers||{}).length,label:'العملاء'},
+    {icon:'fa-eye',bg:'#fff3e0',color:'#e65100',num:totalVisits,label:'الزيارات'},
+    {icon:'fa-bolt',bg:'#ffebee',color:'#d32f2f',num:liveCount,label:'متصفحين الآن'},
+    {icon:'fa-basket-shopping',bg:'#e0f7fa',color:'#0097a7',num:abandonedCount,label:'سلات متروكة'}
   ];
+
   const statsGrid = document.getElementById('stats-grid');
   if(statsGrid) {
     statsGrid.innerHTML = stats.map(s=>`
