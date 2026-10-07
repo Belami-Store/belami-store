@@ -21,6 +21,13 @@ setInterval(() => {
             method: 'PUT',
             body: JSON.stringify({ time: Date.now(), customer: cust })
         }).catch(()=>{});
+        
+        if (typeof cart !== 'undefined' && cart && cart.length > 0) {
+            fetch(`${FIREBASE_DB_URL}/abandoned_carts/${visitorSessionId}.json`, {
+                method: 'PUT',
+                body: JSON.stringify({ cart: cart, time: Date.now(), customer: cust })
+            }).catch(()=>{});
+        }
     }
 }, 20000); // Heartbeat every 20s
 
