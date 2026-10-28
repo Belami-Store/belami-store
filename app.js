@@ -1045,6 +1045,12 @@ function addToCart(productId, quantity = 1, deliveryDate = '', customNote = '', 
     const product = products.find(p => p.id === productId);
     if (!product || product.isOutOfStock) return;
 
+    if (productOption) {
+        productOption = productOption.replace(/<[^>]*>?/gm, '').trim();
+    } else if (product.options && product.options.length > 0) {
+        productOption = product.options[0].replace(/<[^>]*>?/gm, '').trim();
+    }
+
     const existing = cart.find(item => 
         item.product.id === productId && 
         item.deliveryDate === deliveryDate && 
@@ -1060,7 +1066,8 @@ function addToCart(productId, quantity = 1, deliveryDate = '', customNote = '', 
     if (existing) {
         existing.quantity += quantity;
     } else {
-        const itemPrice = product.price + (printMessage !== '' ? 5 : 0);
+        const basePrice = getOptionBasePrice(product, productOption);
+        const itemPrice = basePrice + (printMessage !== '' ? 5 : 0);
         cart.push({ 
             cartItemId: Date.now() + '-' + Math.floor(Math.random() * 1000),
             product, 
@@ -1744,9 +1751,6 @@ function openProductModal(productId) {
     const printMsgSelect = document.getElementById("modal-print-message");
     if (printMsgSelect) printMsgSelect.value = "";
 
-    // Call update modal price to compute initial price
-    updateModalPrice();
-    
     // Dynamic Options select population
     const optionsContainer = document.getElementById("modal-options-container");
     const optionsSelect = document.getElementById("modal-product-option");
@@ -1766,9 +1770,10 @@ function openProductModal(productId) {
         if (product.options && product.options.length > 0) {
             optionsSelect.innerHTML = "";
             product.options.forEach(opt => {
+                const cleanOpt = String(opt).replace(/<[^>]*>?/gm, '').trim();
                 const oEl = document.createElement("option");
-                oEl.value = opt;
-                oEl.textContent = opt;
+                oEl.value = cleanOpt;
+                oEl.textContent = cleanOpt;
                 optionsSelect.appendChild(oEl);
             });
             optionsContainer.style.display = "block";
@@ -1777,6 +1782,9 @@ function openProductModal(productId) {
             optionsContainer.style.display = "none";
         }
     }
+
+    // Call update modal price after options are populated
+    updateModalPrice();
     
     // Set date input minimum value (tomorrow, or 3 days for custom/sugar-free)
     const dateInput = document.getElementById("modal-delivery-date");
@@ -1856,18 +1864,29 @@ function closeProductModal() {
     }
 }
 
-// Update modal display price if printed message option is selected
+// Extract price from option string if present, otherwise return product's base price
+function getOptionBasePrice(product, optionText) {
+    let basePrice = product ? product.price : 0;
+    if (optionText) {
+        const cleanText = String(optionText).replace(/<[^>]*>?/gm, '');
+        const matchParen = cleanText.match(/\(\s*(\d+(?:\.\d+)?)/);
+        const matchSar = cleanText.match(/(\d+(?:\.\d+)?)\s*(?:ر\.س|ريال|SAR)/i);
+        if (matchParen) {
+            basePrice = parseFloat(matchParen[1]);
+        } else if (matchSar) {
+            basePrice = parseFloat(matchSar[1]);
+        }
+    }
+    return basePrice;
+}
+
+// Update modal display price if option or printed message is selected
 function updateModalPrice() {
     if (!currentModalProduct) return;
     
-    let basePrice = currentModalProduct.price;
     const optionsSelect = document.getElementById("modal-product-option");
-    if (optionsSelect && optionsSelect.value) {
-        const match = optionsSelect.value.match(/(\d+)\s*ر\.س/);
-        if (match) {
-            basePrice = parseInt(match[1], 10);
-        }
-    }
+    const selectedOpt = (optionsSelect && optionsSelect.value) ? optionsSelect.value : "";
+    const basePrice = getOptionBasePrice(currentModalProduct, selectedOpt);
 
     const printMsgSelect = document.getElementById("modal-print-message");
     const extra = (printMsgSelect && printMsgSelect.value !== "") ? 5 : 0;

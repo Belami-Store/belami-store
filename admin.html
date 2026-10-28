@@ -1120,8 +1120,8 @@ async function renderCRM() {
   
   document.getElementById('crm-abandoned-tbody').innerHTML = abArray.length ? abArray.map(ab => {
       let custHtml = ab.customer ? `<b>${ab.customer.name}</b><br><a href="https://wa.me/966${ab.customer.phone.replace(/^0+/, '')}" target="_blank" style="color:#25D366;text-decoration:none;"><i class="fa-brands fa-whatsapp"></i> ${ab.customer.phone}</a>` : `<span style="color:#aaa">زائر مجهول</span>`;
-      let itemsHtml = ab.cart.map(c => `<span style="display:inline-block;background:#f3f4f6;color:#333;padding:2px 6px;border-radius:4px;margin:2px;font-size:0.75rem;">${c.quantity}x ${c.product.name}</span>`).join('');
-      let total = ab.cart.reduce((sum, c) => sum + ((c.product.price + (c.printMessage ? 5 : 0)) * c.quantity), 0);
+      let itemsHtml = ab.cart.map(c => `<span style="display:inline-block;background:#f3f4f6;color:#333;padding:2px 6px;border-radius:4px;margin:2px;font-size:0.75rem;">${c.quantity}x ${c.product.name}${c.productOption ? ' (' + c.productOption + ')' : ''}</span>`).join('');
+      let total = ab.cart.reduce((sum, c) => sum + ((c.itemPrice || (c.product.price + (c.printMessage ? 5 : 0))) * c.quantity), 0);
       let timeStr = new Date(ab.time).toLocaleTimeString('ar-SA');
       return `<tr>
         <td>${custHtml}</td>
