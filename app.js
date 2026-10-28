@@ -436,8 +436,43 @@ function playNewOrderSound() {
     }
 }
 
+// Send instant Telegram notification to store owner
+function sendTelegramOrderNotification(orderData) {
+    try {
+        const botToken = "9019553621:AAESpfgumIhKmJyGaoPF2quikPL8yf7uTT8";
+        const chatId = "6150176449";
+        const itemsList = (orderData.items || []).map(i => `• ${i.quantity || 1}x ${i.name || 'منتج'} (${i.price || 0} ر.س)`).join('\n');
+        const cleanPhone = String(orderData.phone || '').replace(/^0+/, '');
+        const waUrl = cleanPhone ? `https://wa.me/966${cleanPhone}` : '';
+
+        const text = `🔔 *طلب جديد في متجر بيلامي!* 🎉\n\n` +
+            `🔢 *رقم الطلب:* #${orderData.orderId}\n` +
+            `👤 *العميل:* ${orderData.name || 'عميل بيلامي'}\n` +
+            `📱 *الجوال:* ${orderData.phone || 'غير محدد'}${waUrl ? ` ([مراسلة واتساب](${waUrl}))` : ''}\n` +
+            `📍 *العنوان:* ${orderData.city || 'الرياض'} - ${orderData.address || ''}\n` +
+            `💳 *طريقة الدفع:* ${orderData.paymentMethod || 'دفع إلكتروني'}\n` +
+            `💰 *الإجمالي:* *${parseFloat(orderData.total || 0).toFixed(2)} ر.س*\n\n` +
+            `🛍 *المنتجات:*\n${itemsList || 'لا توجد تفاصيل'}\n\n` +
+            `🔗 [فتح لوحة التحكم](https://belamisa.com/admin.html)`;
+
+        fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: chatId,
+                text: text,
+                parse_mode: 'Markdown',
+                disable_web_page_preview: true
+            })
+        }).catch(err => console.warn("Telegram alert error:", err));
+    } catch (e) {
+        console.warn("Could not dispatch Telegram alert:", e);
+    }
+}
+
 // Send instant email notification to store email: belamichoco@gmail.com
 function sendOrderEmailNotification(orderData) {
+    sendTelegramOrderNotification(orderData);
     try {
         const itemsSummary = (orderData.items || []).map(i => `${i.name || 'منتج'} (الكمية: ${i.quantity || 1})`).join('، ');
         fetch('https://formsubmit.co/ajax/belamichoco@gmail.com', {
@@ -2244,7 +2279,10 @@ function saveOrderToAdmin(orderId, name, phone, email, city, address, paymentMet
         // 1. Format items safely (supports both { product: { name, price } } and { name, price } formats)
         const formattedItems = (items || []).map(i => {
             if (!i) return { name: "منتج شوكولاتة", quantity: 1, price: 0 };
-            const prodName = (i.product && i.product.name) ? i.product.name : (i.name || "منتج شوكولاتة");
+            let prodName = (i.product && i.product.name) ? i.product.name : (i.name || "منتج شوكولاتة");
+            if (i.productOption && !prodName.includes(i.productOption)) {
+                prodName += ` (${i.productOption})`;
+            }
             const prodPrice = i.itemPrice || (i.product ? i.product.price : 0) || i.price || 0;
             const prodQty = i.quantity || 1;
             return { name: prodName, quantity: prodQty, price: prodPrice };
