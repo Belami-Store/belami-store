@@ -615,50 +615,159 @@ function initCartAndCustomer() {
         restoreCustomerCloudCart(cust.phone);
     }
 }
-// 14. View Customer Invoice PDF
+// 14. View Customer Invoice Modal & Print
 window.viewCustomerInvoice = async function(orderId) {
     if (!orderId) return;
-    showToast('جاري إنشاء الفاتورة...', 'info');
+    showToast('جاري فتح الفاتورة...', 'info');
     try {
-        const res = await fetch(`${FIREBASE_DB_URL}/orders.json`);
-        if (res.ok) {
-            const allOrders = await res.json();
-            let targetOrder = null;
-            if (allOrders) {
-                Object.values(allOrders).forEach(o => {
-                    if (o && o.id === orderId || o.orderId === orderId) {
-                        targetOrder = o;
-                    }
-                });
-            }
-            if (targetOrder) {
-                if (typeof window.generateInvoicePDF === 'function') {
-                    const base64Url = await window.generateInvoicePDF(targetOrder);
-                    if (base64Url) {
-                        const byteString = atob(base64Url.split(',')[1]);
-                        const ab = new ArrayBuffer(byteString.length);
-                        const ia = new Uint8Array(ab);
-                        for (let i = 0; i < byteString.length; i++) {
-                            ia[i] = byteString.charCodeAt(i);
+        let targetOrder = null;
+        // 1. Check localStorage first for instant load
+        try {
+            const localOrders = JSON.parse(localStorage.getItem('belami_orders') || '[]');
+            targetOrder = localOrders.find(o => o && (o.orderId === orderId || o.id === orderId));
+        } catch(e) {}
+
+        // 2. Fallback to Firebase
+        if (!targetOrder) {
+            const res = await fetch(`${FIREBASE_DB_URL}/orders.json?t=${Date.now()}`);
+            if (res.ok) {
+                const allOrders = await res.json();
+                if (allOrders) {
+                    Object.values(allOrders).forEach(o => {
+                        if (o && (o.id === orderId || o.orderId === orderId)) {
+                            targetOrder = o;
                         }
-                        const blob = new Blob([ab], { type: 'application/pdf' });
-                        const blobUrl = URL.createObjectURL(blob);
-                        const link = document.createElement('a');
-                        link.href = blobUrl;
-                        link.download = `Invoice_${orderId}.pdf`;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
-                    } else {
-                        showToast('عذراً، لا يمكن عرض الفاتورة حالياً على هذا المتصفح', 'error');
-                    }
+                    });
                 }
-            } else {
-                showToast('لم يتم العثور على تفاصيل الطلب', 'error');
             }
         }
+
+        if (!targetOrder) {
+            showToast('لم يتم العثور على تفاصيل الطلب', 'error');
+            return;
+        }
+
+        window.currentViewedInvoiceOrder = targetOrder;
+
+        const items = Array.isArray(targetOrder.items) ? targetOrder.items : [];
+        const itemsRowsHtml = items.map(i => {
+            const prodName = (i.product && i.product.name) ? i.product.name : (i.name || 'منتج شوكولاتة');
+            const qty = i.quantity || 1;
+            const unitPrice = parseFloat(i.itemPrice || i.price || (i.product ? i.product.price : 0) || 0);
+            const lineTotal = (unitPrice * qty).toFixed(2);
+            return `
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 10px 8px; color: #1e293b; font-weight: 600;">${prodName}</td>
+                    <td style="padding: 10px 8px; text-align: center; color: #475569;">${qty}</td>
+                    <td style="padding: 10px 8px; text-align: left; color: #0f172a; font-weight: 700;">${lineTotal} ر.س</td>
+                </tr>
+            `;
+        }).join('');
+
+        let existingModal = document.getElementById('belami-invoice-viewer-modal');
+        if (existingModal) existingModal.remove();
+
+        const modalOverlay = document.createElement('div');
+        modalOverlay.id = 'belami-invoice-viewer-modal';
+        modalOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:999999;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);direction:rtl;font-family:"Tajawal",sans-serif;';
+        modalOverlay.innerHTML = `
+            <div style="background:#fff;width:100%;max-width:480px;border-radius:20px;box-shadow:0 25px 60px rgba(0,0,0,0.35);overflow:hidden;max-height:92vh;display:flex;flex-direction:column;">
+                <div style="background:#1a1a2e;color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #c9a96e;">
+                    <div>
+                        <h3 style="margin:0;color:#c9a96e;font-size:1.15rem;font-weight:800;">فاتورة ضريبية مبسطة</h3>
+                        <span style="font-size:0.78rem;color:#cbd5e1;">بيلامي للشوكولاتة | Belami Chocolate</span>
+                    </div>
+                    <button onclick="document.getElementById('belami-invoice-viewer-modal').remove()" style="background:rgba(255,255,255,0.12);border:none;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;">✕</button>
+                </div>
+
+                <div id="belami-invoice-printable-area" style="padding:20px;overflow-y:auto;color:#1e293b;font-size:0.9rem;line-height:1.6;">
+                    <div style="display:flex;justify-content:space-between;background:#f8fafc;padding:12px 14px;border-radius:12px;margin-bottom:16px;border:1px solid #e2e8f0;">
+                        <div>
+                            <div style="color:#64748b;font-size:0.75rem;">رقم الفاتورة / الطلب</div>
+                            <strong style="color:#0f172a;font-size:1rem;">#${targetOrder.orderId || orderId}</strong>
+                        </div>
+                        <div style="text-align:left;">
+                            <div style="color:#64748b;font-size:0.75rem;">تاريخ الإصدار</div>
+                            <strong style="color:#0f172a;font-size:0.85rem;">${targetOrder.date || new Date().toLocaleDateString('ar-SA')} ${targetOrder.time || ''}</strong>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom:16px;padding:0 4px;">
+                        <div style="margin-bottom:4px;"><strong>العميل:</strong> ${targetOrder.name || 'عميل بيلامي'}</div>
+                        <div style="margin-bottom:4px;"><strong>رقم الجوال:</strong> <span dir="ltr">${targetOrder.phone || ''}</span></div>
+                        <div style="margin-bottom:4px;"><strong>العنوان:</strong> ${targetOrder.city || 'الرياض'} - ${targetOrder.address || ''}</div>
+                        <div><strong>طريقة الدفع:</strong> ${targetOrder.paymentMethod || 'مدفوع إلكترونياً'}</div>
+                    </div>
+
+                    <table style="width:100%;border-collapse:collapse;margin-bottom:16px;font-size:0.88rem;">
+                        <thead>
+                            <tr style="background:#f1f5f9;color:#475569;">
+                                <th style="padding:8px;text-align:right;border-radius:0 8px 8px 0;">المنتج</th>
+                                <th style="padding:8px;text-align:center;">الكمية</th>
+                                <th style="padding:8px;text-align:left;border-radius:8px 0 0 8px;">المجموع</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsRowsHtml || '<tr><td colspan="3" style="padding:12px;text-align:center;">منتجات بيلامي</td></tr>'}
+                        </tbody>
+                    </table>
+
+                    <div style="border-top:2px dashed #cbd5e1;padding-top:14px;display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-size:1.05rem;font-weight:800;color:#0f172a;">الإجمالي الكلي:</span>
+                        <span style="font-size:1.25rem;font-weight:900;color:#b89047;">${parseFloat(targetOrder.total || 0).toFixed(2)} ر.س</span>
+                    </div>
+
+                    <div style="text-align:center;margin-top:18px;font-size:0.78rem;color:#94a3b8;">
+                        شكراً لتسوقكم من بيلامي للشوكولاتة ✨<br>belamisa.com
+                    </div>
+                </div>
+
+                <div style="padding:14px 20px;background:#f8fafc;border-top:1px solid #e2e8f0;display:flex;gap:10px;">
+                    <button onclick="window.printCustomerInvoiceWindow()" style="flex:1;background:#b89047;color:#fff;border:none;padding:11px;border-radius:10px;font-weight:800;font-family:'Tajawal',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-size:0.9rem;">
+                        <i class="fa-solid fa-print"></i> طباعة / حفظ PDF
+                    </button>
+                    <button onclick="document.getElementById('belami-invoice-viewer-modal').remove()" style="background:#e2e8f0;color:#334155;border:none;padding:11px 18px;border-radius:10px;font-weight:700;font-family:'Tajawal',sans-serif;cursor:pointer;font-size:0.9rem;">
+                        إغلاق
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modalOverlay);
     } catch(e) {
+        console.error(e);
         showToast('حدث خطأ أثناء جلب الفاتورة', 'error');
     }
+};
+
+window.printCustomerInvoiceWindow = function() {
+    const area = document.getElementById('belami-invoice-printable-area');
+    if (!area) return;
+    const printWin = window.open('', '_blank');
+    if (!printWin) {
+        window.print();
+        return;
+    }
+    printWin.document.write(`
+        <!DOCTYPE html>
+        <html lang="ar" dir="rtl">
+        <head>
+            <meta charset="UTF-8">
+            <title>فاتورة بيلامي للشوكولاتة</title>
+            <style>
+                body { font-family: 'Arial', sans-serif; direction: rtl; padding: 25px; color: #1e293b; max-width: 600px; margin: 0 auto; }
+            </style>
+        </head>
+        <body>
+            <div style="text-align:center;margin-bottom:20px;border-bottom:2px solid #b89047;padding-bottom:12px;">
+                <h2 style="margin:0;color:#b89047;">بيلامي للشوكولاتة | Belami Chocolate</h2>
+                <p style="margin:4px 0 0;color:#64748b;font-size:14px;">فاتورة طلب</p>
+            </div>
+            ${area.innerHTML}
+            <script>
+                window.onload = function() { setTimeout(function() { window.print(); }, 300); };
+            <\/script>
+        </body>
+        </html>
+    `);
+    printWin.document.close();
 };
