@@ -853,15 +853,25 @@ function renderProducts() {
         let buttonHtml = '';
         if (p.isOutOfStock) {
             buttonHtml = `
-                <button class="btn btn-secondary" style="border-color: #ddd; color: #999; cursor: not-allowed; padding: 6px 14px; font-size: 0.9rem;" disabled>
-                    نفدت الكمية
-                </button>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <button class="btn-icon" onclick="shareProduct(${p.id}, event)" title="مشاركة المنتج" aria-label="مشاركة المنتج" style="width: 36px; height: 36px; font-size: 0.9rem; background: rgba(184, 144, 71, 0.08); color: var(--primary); border: 1px solid rgba(184, 144, 71, 0.25);">
+                        <i class="fa-solid fa-share-nodes"></i>
+                    </button>
+                    <button class="btn btn-secondary" style="border-color: #ddd; color: #999; cursor: not-allowed; padding: 6px 14px; font-size: 0.9rem;" disabled>
+                        نفدت الكمية
+                    </button>
+                </div>
             `;
         } else {
             buttonHtml = `
-                <button class="btn-icon" onclick="addToCart(${p.id})" aria-label="إضافة إلى السلة">
-                    <i class="fa-solid fa-cart-plus"></i>
-                </button>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <button class="btn-icon" onclick="shareProduct(${p.id}, event)" title="مشاركة المنتج" aria-label="مشاركة المنتج" style="width: 36px; height: 36px; font-size: 0.9rem; background: rgba(184, 144, 71, 0.08); color: var(--primary); border: 1px solid rgba(184, 144, 71, 0.25);">
+                        <i class="fa-solid fa-share-nodes"></i>
+                    </button>
+                    <button class="btn-icon" onclick="addToCart(${p.id})" aria-label="إضافة إلى السلة">
+                        <i class="fa-solid fa-cart-plus"></i>
+                    </button>
+                </div>
             `;
         }
 
@@ -1944,6 +1954,37 @@ function toggleGiftingFields(checkbox) {
     const fields = document.getElementById("modal-gifting-fields");
     if (fields) {
         fields.style.display = checkbox.checked ? "flex" : "none";
+    }
+}
+
+// Share product link via Web Share API or clipboard fallback
+async function shareProduct(productId, event) {
+    if (event) event.stopPropagation();
+    const product = products.find(p => p.id === productId) || currentModalProduct;
+    if (!product) return;
+
+    const shareUrl = `${window.location.origin}${window.location.pathname}#product-${product.id}`;
+    const shareTitle = `${product.name} | بيلامي للشوكولاتة`;
+    const shareText = `شاهد "${product.name}" من متجر بيلامي للشوكولاتة الفاخرة (${product.price} ر.س) 🍫✨\n${shareUrl}`;
+
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: shareTitle,
+                text: `شاهد "${product.name}" من متجر بيلامي للشوكولاتة الفاخرة (${product.price} ر.س) 🍫✨`,
+                url: shareUrl
+            });
+            return;
+        } catch (err) {
+            if (err.name === 'AbortError') return;
+        }
+    }
+
+    try {
+        await navigator.clipboard.writeText(shareText);
+        showToast("🔗 تم نسخ رابط المنتج! يمكنك إرساله الآن عبر واتساب أو سناب شات");
+    } catch (e) {
+        window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, '_blank');
     }
 }
 

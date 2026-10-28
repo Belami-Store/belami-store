@@ -1048,7 +1048,7 @@
                 <span class="payment-badge" title="أبل باي" style="font-weight: 800; font-size: 0.9rem; color: var(--text-gold); border: 1px solid var(--glass-border); padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.02)"><i class="fa-brands fa-apple-pay"></i></span>
             </div>
             <div style="font-size: 0.85rem; color: #a1a1aa; margin-top: 10px;">
-                Version 23.0
+                Version 24.0
             </div>
         </div>
     </footer>
@@ -1147,6 +1147,9 @@
                     </div>
                     <button class="btn modal-add-btn" id="modal-add-btn" onclick="addModalProductToCart()" type="button">
                         إضافة إلى السلة <i class="fa-solid fa-bag-shopping"></i>
+                    </button>
+                    <button class="btn-icon" onclick="shareProduct(currentModalProduct ? currentModalProduct.id : null)" type="button" title="مشاركة المنتج" style="width: 46px; height: 46px; border-radius: 12px; border: 1px solid rgba(184, 144, 71, 0.35); background: rgba(184, 144, 71, 0.08); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; cursor: pointer;">
+                        <i class="fa-solid fa-share-nodes"></i>
                     </button>
                 </div>
             </div>
@@ -1382,8 +1385,8 @@
     </div>
 
     <!-- Custom Logic Script -->
-    <script src="customer_email.js?v=23"></script><script src="customer_engine.js?v=23"></script>
-    <script src="app.js?v=23"></script>
+    <script src="customer_email.js?v=24"></script><script src="customer_engine.js?v=24"></script>
+    <script src="app.js?v=24"></script>
 </body>
 </html>
 
