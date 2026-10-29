@@ -1018,6 +1018,22 @@ function navigateTo(view) {
         renderCheckoutSummary();
     } else if (view === 'success') {
         successView.classList.add("active");
+        // Force close any open modals/overlays that might block pointer events on iOS Safari
+        const moyasarModal = document.getElementById("moyasar-modal");
+        if (moyasarModal) {
+            moyasarModal.style.opacity = "0";
+            moyasarModal.style.pointerEvents = "none";
+            moyasarModal.style.display = "none";
+        }
+        const apOverlay = document.getElementById("apple-pay-sheet-overlay");
+        if (apOverlay) {
+            apOverlay.style.display = "none";
+            apOverlay.style.pointerEvents = "none";
+        }
+        const cartOverlay = document.getElementById("cart-overlay");
+        const cartDrawer = document.getElementById("cart-drawer");
+        if (cartOverlay) cartOverlay.classList.remove("open");
+        if (cartDrawer) cartDrawer.classList.remove("open");
     } else if (view === 'admin') {
         // Redirect completely to the new standalone admin dashboard
         window.location.href = 'admin.html';
@@ -1602,6 +1618,7 @@ async function handleCheckoutSubmit(event) {
     const modal = document.getElementById("moyasar-modal");
     if (modal) {
         modal.style.display = "flex";
+        modal.style.pointerEvents = "auto";
         setTimeout(() => {
             modal.style.opacity = "1";
             const content = modal.querySelector(".moyasar-modal-content");

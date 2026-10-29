@@ -75,7 +75,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
     
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="style.css?v=25">
     
     <!-- Apple Pay Official JS SDK -->
     <script src="https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js"></script>
@@ -83,10 +83,6 @@
     <!-- Moyasar Payment Form Library -->
     <link rel="stylesheet" href="libs/moyasar.css" />
     <script src="libs/moyasar.umd.min.js"></script>
-
-    <!-- Tap Payments goSell Library -->
-    <link rel="stylesheet" href="https://goSellJSLib.b-cdn.net/v2.0.4/css/gosell.css" />
-    <script type="text/javascript" src="https://goSellJSLib.b-cdn.net/v2.0.4/js/gosell.js"></script>
 
 <style>.currency-icon { height: 16px !important; width: auto !important; vertical-align: -2px !important; margin-right: 3px !important; margin-left: 3px !important; display: inline-block !important; opacity: 0.9; }</style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script></head>
@@ -548,10 +544,10 @@
                             </div>
                         </div>
 
-                        <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-                            <a href="#" id="whatsapp-confirm-btn" class="btn" style="background-color: #25D366; border-color: #25D366; color: white; display: none; align-items: center; gap: 8px;"><i class="fa-brands fa-whatsapp"></i> تأكيد الطلب عبر الواتساب</a>
-                            <button type="button" onclick="window.location.href='/'" class="btn">العودة للرئيسية</button>
-                            <button type="button" id="success-print-btn" class="btn btn-secondary"><i class="fa-solid fa-file-pdf"></i> عرض الفاتورة</button>
+                        <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; position: relative; z-index: 50;">
+                            <a href="#" id="whatsapp-confirm-btn" target="_blank" rel="noopener" class="btn" style="background-color: #25D366; border-color: #25D366; color: white; display: none; align-items: center; justify-content: center; gap: 8px; cursor: pointer; position: relative; z-index: 55;"><i class="fa-brands fa-whatsapp"></i> تأكيد الطلب عبر الواتساب</a>
+                            <button type="button" onclick="navigateTo('home'); window.scrollTo(0,0);" class="btn" style="cursor: pointer; position: relative; z-index: 55;">العودة للرئيسية</button>
+                            <button type="button" id="success-print-btn" onclick="const oid = (document.getElementById('receipt-order-id') ? document.getElementById('receipt-order-id').textContent.replace('#','').trim() : ''); if(window.viewCustomerInvoice) window.viewCustomerInvoice(oid);" class="btn btn-secondary" style="cursor: pointer; position: relative; z-index: 55;"><i class="fa-solid fa-file-pdf"></i> عرض الفاتورة</button>
                         </div>
                     </div>
                 </div>
@@ -1048,7 +1044,7 @@
                 <span class="payment-badge" title="أبل باي" style="font-weight: 800; font-size: 0.9rem; color: var(--text-gold); border: 1px solid var(--glass-border); padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.02)"><i class="fa-brands fa-apple-pay"></i></span>
             </div>
             <div style="font-size: 0.85rem; color: #a1a1aa; margin-top: 10px;">
-                Version 24.0
+                Version 25.0
             </div>
         </div>
     </footer>
@@ -1385,8 +1381,8 @@
     </div>
 
     <!-- Custom Logic Script -->
-    <script src="customer_email.js?v=24"></script><script src="customer_engine.js?v=24"></script>
-    <script src="app.js?v=24"></script>
+    <script src="customer_email.js?v=25"></script><script src="customer_engine.js?v=25"></script>
+    <script src="app.js?v=25"></script>
 </body>
 </html>
 
